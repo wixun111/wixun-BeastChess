@@ -1,14 +1,13 @@
-8 8
+8 7
 BLUE
 RED Lion 7 0 0
 RED Dog 3 1 1
-RED Cat 2 1 5
 RED Tiger 6 1 6
 RED Rat 1 2 0
 RED Leopard 5 2 2
 RED Wolf 4 2 4
-RED Elephant 8 3 6
-BLUE Rat 1 4 6
+RED Cat 2 2 5
+BLUE Rat 1 2 6
 BLUE Elephant 8 6 0
 BLUE Wolf 4 6 2
 BLUE Leopard 5 6 4
@@ -16,8 +15,12 @@ BLUE Cat 2 7 1
 BLUE Dog 3 7 5
 BLUE Tiger 6 8 0
 BLUE Lion 7 8 6
-4
+8
 6 6  5 6  null
 2 6  3 6  null
 5 6  4 6  null
+3 6  2 6  null
+4 6  3 6  null
 0 6  1 6  null
+3 6  2 6  RED Elephant 8 
+1 5  2 5  null

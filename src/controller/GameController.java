@@ -10,10 +10,12 @@ import model.ChessboardPoint;
 import view.CellComponent;
 import view.ChessComponent;
 import view.ChessboardComponent;
+import view.Choosemode;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.net.Socket;
 import java.util.Stack;
 
 /**
@@ -28,16 +30,26 @@ public class GameController implements GameListener {
     private Chessboard model;
     private ChessboardComponent view;
     private PlayerColor currentPlayer;
-
-    // Record whether there is a selected piece before
+    private PlayerColor Player;
     private ChessboardPoint selectedPoint;
     private boolean over;
     private int redCount,blueCount;
+    private final int mode;
+    private Socket socket;
     private Stack<Object[]> stack = new Stack();
-    public GameController(ChessboardComponent view, Chessboard model,boolean isLoad) throws IOException {
+    private Thread gameThread;
+    private final Object lock = new Object();
+
+    private Object[] output = new Object[3];
+    public GameController(ChessboardComponent view, Chessboard model,boolean isLoad,int mode,Socket socket) throws IOException {
         this.view = view;
         this.model = model;
+        this.Player = (mode==0||mode==1)?PlayerColor.BLUE:PlayerColor.RED;
         this.currentPlayer = PlayerColor.BLUE;
+        this.mode = mode;
+        this.socket = mode==0?null:socket;
+        if(mode!=0)
+            gameThread = new Thread(() ->createThread());
         view.registerController(this);
         initialize();
         if(isLoad){
@@ -48,6 +60,10 @@ public class GameController implements GameListener {
             view.repaint();
         }
     }
+    public int getMode() {
+        return mode;
+    }
+
     public Chessboard getModel(){
         return model;
     }
@@ -64,9 +80,6 @@ public class GameController implements GameListener {
     public Stack getStack() {
         return stack;
     }
-    public Object[] getStack(int n) {
-        return stack.get(n);
-    }
 
     public int getBlueCount(){
         return blueCount;
@@ -76,13 +89,59 @@ public class GameController implements GameListener {
         blueCount = 8;
         for (int i = 0; i < Constant.CHESSBOARD_ROW_SIZE.getNum(); i++) {
             for (int j = 0; j < Constant.CHESSBOARD_COL_SIZE.getNum(); j++) {
-
+            }
+        }
+        startThread();
+    }
+    private void startThread(){
+        if(mode!=0)
+        gameThread.start();
+    }
+    private void createThread(){
+        synchronized (lock){
+            if(mode==2){
+                while (!over){
+                    try {
+                        System.out.println("接受");
+                        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                        Object[] input = (Object[]) ois.readObject();
+                        concludeMove((ChessboardPoint) input[0],(ChessboardPoint) input[1],(ChessPiece) input[2]);
+                        lock.wait();
+                        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                        oos.writeObject(output);
+                        oos.flush();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }else {
+                while (!over){
+                    try {
+                        lock.wait();
+                        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                        System.out.println("接收到客户端发送的对象");
+                        oos.writeObject(output);
+                        oos.flush();
+                        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                        Object[] input = (Object[]) ois.readObject();
+                        concludeMove((ChessboardPoint) input[0],(ChessboardPoint) input[1],(ChessPiece) input[2]);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
         }
     }
 
-    // after a valid move swap the player
-    private void swapColor() {
+    private void swapColor() {//变化当前回合颜色
         currentPlayer = currentPlayer == PlayerColor.BLUE ? PlayerColor.RED : PlayerColor.BLUE;
     }
 
@@ -165,16 +224,17 @@ public class GameController implements GameListener {
     }
 
     public void push(ChessboardPoint des,ChessboardPoint src, ChessPiece chess){
-        Object[] ob = new Object[]{des,src,chess};
+        output = new Object[]{des, src, chess};
         System.out.println(stack.size());
-        stack.push(ob);
+        stack.push(output);
+        System.out.println(output[0].getClass());
     }
     public void undo(){
         if(stack.empty()) return;
-        Object[] ob = stack.pop();
-        ChessboardPoint des = (ChessboardPoint)ob[0];
-        ChessboardPoint src = (ChessboardPoint)ob[1];
-        ChessPiece chess = (ChessPiece)ob[2];
+        Object[] output = stack.pop();
+        ChessboardPoint des = (ChessboardPoint)output[0];
+        ChessboardPoint src = (ChessboardPoint)output[1];
+        ChessPiece chess = (ChessPiece)output[2];
         if(view.trapCell.contains(des)){
             model.getChessPieceAt(src).setRank(0);
         }
@@ -192,9 +252,20 @@ public class GameController implements GameListener {
         swapColor();
         view.repaint();
     }
+    public void concludeMove(ChessboardPoint selectedPoint,ChessboardPoint point,ChessPiece chess){
+        if(chess!=null&&model.getChessPieceAt(selectedPoint).canCapture(chess)&&model.isValidCapture(view,selectedPoint,point)){
+            model.captureChessPiece(view,selectedPoint,point);
+        }
+        model.moveChessPiece(selectedPoint, point);
+        view.setChessComponentAtGrid(point, view.removeChessComponentAtGrid(selectedPoint));
+        selectedPoint = null;
+        view.repaint();
+        win(point);
+        swapColor();
+    }
     // click an empty cell
     @Override
-    public void onPlayerClickCell(ChessboardPoint point, CellComponent component) {
+    public void onPlayerClickCell(ChessboardPoint point, CellComponent component) throws IOException, ClassNotFoundException {
         if (!over&&selectedPoint != null && model.isValidMove(view,selectedPoint,point)) {
             if(view.trapCell.contains(point)){
                 model.getChessPieceAt(selectedPoint).setRank(0);
@@ -203,19 +274,23 @@ public class GameController implements GameListener {
                 model.getChessPieceAt(selectedPoint).setRank();
             }
             push(selectedPoint,point,model.getChessPieceAt(point));
+            if(mode!=0)  new Thread(() ->{
+                synchronized (lock){
+                    lock.notifyAll();
+                }
+            }).start();
             model.moveChessPiece(selectedPoint, point);
             view.setChessComponentAtGrid(point, view.removeChessComponentAtGrid(selectedPoint));
             selectedPoint = null;
-            view.repaint();
             win(point);
+            view.repaint();
             swapColor();
-            // TODO: if the chess enter Dens or Traps and so on
         }
     }
 
     @Override
     public void onPlayerClickChessPiece(ChessboardPoint point, ChessComponent component) {
-        if(!over){
+        if(!over&&(Player==currentPlayer||mode==0)){
             if (selectedPoint == null) {
                 if (model.getChessPieceOwner(point).equals(currentPlayer)) {
                     selectedPoint = point;
@@ -237,12 +312,17 @@ public class GameController implements GameListener {
                 if(model.getChessPieceAt(point).getOwner().equals(PlayerColor.RED))redCount--;
                 else blueCount--;
                 push(selectedPoint,point,model.getChessPieceAt(point));
+                if(mode!=0)  new Thread(() ->{
+                    synchronized (lock){
+                        lock.notifyAll();
+                    }
+                }).start();
                 model.captureChessPiece(view,selectedPoint,point);
                 view.setChessComponentAtGrid(point, view.removeChessComponentAtGrid(selectedPoint));
                 selectedPoint = null;
-                view.repaint();
                 win(point);
                 swapColor();
+                view.repaint();
             }
             view.repaint();
         }

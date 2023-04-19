@@ -18,7 +18,7 @@ public class ChessGameFrame extends JFrame {
 
     private ChessboardComponent chessboardComponent;
     private GameController game;
-    public ChessGameFrame(int width, int height) {
+    public ChessGameFrame(int width, int height,int mode) {
         setTitle("斗兽棋"); //设置标题
         this.WIDTH = width;
         this.HEIGTH = height;
@@ -32,10 +32,13 @@ public class ChessGameFrame extends JFrame {
 
         addChessboard();
         addLabel();
-        addRestartButton();
-        addSaveButton();
-        addLoadButton();
-        addUndoButton();
+        addModeLabel(mode);
+        if(mode==0){
+            addRestartButton();
+            addSaveButton();
+            addLoadButton();
+            addUndoButton();
+        }
     }
 
     public ChessboardComponent getChessboardComponent() {
@@ -68,16 +71,31 @@ public class ChessGameFrame extends JFrame {
         statusLabel.setFont(new Font("Rockwell", Font.BOLD, 40));
         add(statusLabel);
     }
+    private void addModeLabel(int mode) {
+        String modeName ="";
+        if(mode==0){
+            modeName = "单机模式";
+        }else if(mode==1){
+            modeName = "联网模式（主机蓝）";
+        }else if(mode==2){
+            modeName = "联网模式（客户红）";
+        }
+        JLabel statusLabel = new JLabel(modeName);
+        statusLabel.setLocation(HEIGTH-100, HEIGTH / 10+80);
+        statusLabel.setSize(400, 60);
+        statusLabel.setFont(new Font("Rockwell", Font.BOLD, 40));
+        add(statusLabel);
+    }
     private void addRestartButton() {
         JButton button = new JButton("重新开始");
         button.addActionListener((e) -> {
             GameController gameController = null;
             try {
-                gameController = new GameController(getChessboardComponent(), new Chessboard(false),false);
+                game = new GameController(getChessboardComponent(), new Chessboard(false),false,game.getMode(),null);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-            setGame(gameController);
+            setGame(game);
             setVisible(true);
         });
         button.setLocation(HEIGTH, HEIGTH / 10 + 120);
@@ -103,13 +121,12 @@ public class ChessGameFrame extends JFrame {
     private void addLoadButton() {
         JButton button = new JButton("读取");
         button.addActionListener((e) -> {
-            GameController gameController = null;
             try {
-                gameController = new GameController(getChessboardComponent(),new Chessboard(true),true);
+                game = new GameController(getChessboardComponent(),new Chessboard(true),true,game.getMode(),null);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-            setGame(gameController);
+            setGame(game);
             setVisible(true);
             JOptionPane.showMessageDialog(this,"读取成功");
         });
