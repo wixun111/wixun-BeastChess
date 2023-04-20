@@ -3,7 +3,6 @@ package listener;
 import model.ChessboardPoint;
 import view.CellComponent;
 import view.ChessComponent;
-import view.ChessComponent;
 
 import java.io.IOException;
 
