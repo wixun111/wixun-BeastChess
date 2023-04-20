@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,6 +20,7 @@ import static model.Constant.CHESSBOARD_ROW_SIZE;
  * This class represents the checkerboard component object on the panel
  */
 public class ChessboardComponent extends JComponent implements Serializable {
+    @Serial
     private static final long serialVersionUID = 23L;
     private final CellComponent[][] gridComponents = new CellComponent[CHESSBOARD_ROW_SIZE.getNum()][CHESSBOARD_COL_SIZE.getNum()];
     private final int CHESS_SIZE;
@@ -55,47 +57,48 @@ public class ChessboardComponent extends JComponent implements Serializable {
     public int getChessSize(){
         return CHESS_SIZE;
     }
-    public CellComponent[][] getGridComponents(){
-        return gridComponents;
-    }
-    public void initiateGridComponents() {
 
+    public Set<ChessboardPoint> getDenCell() {
+        return denCell;
+    }
+
+    public void initiateGridComponents() {
         riverCell.add(new ChessboardPoint(3,1));
         riverCell.add(new ChessboardPoint(3,2));
         riverCell.add(new ChessboardPoint(4,1));
         riverCell.add(new ChessboardPoint(4,2));
         riverCell.add(new ChessboardPoint(5,1));
         riverCell.add(new ChessboardPoint(5,2));
-
         riverCell.add(new ChessboardPoint(3,4));
         riverCell.add(new ChessboardPoint(3,5));
         riverCell.add(new ChessboardPoint(4,4));
         riverCell.add(new ChessboardPoint(4,5));
         riverCell.add(new ChessboardPoint(5,4));
         riverCell.add(new ChessboardPoint(5,5));
-        denCell.add(new ChessboardPoint(0,3));
-        trapCell.add(new ChessboardPoint(0,2));
-        trapCell.add(new ChessboardPoint(0,4));
-        trapCell.add(new ChessboardPoint(1,3));
-        denCell.add(new ChessboardPoint(8,3));
         trapCell.add(new ChessboardPoint(8,2));
         trapCell.add(new ChessboardPoint(8,4));
         trapCell.add(new ChessboardPoint(7,3));
+        trapCell.add(new ChessboardPoint(0,2));
+        trapCell.add(new ChessboardPoint(0,4));
+        trapCell.add(new ChessboardPoint(1,3));
+        denCell.add(new ChessboardPoint(0,3));
+        denCell.add(new ChessboardPoint(8,3));
         for (int i = 0; i < CHESSBOARD_ROW_SIZE.getNum(); i++) {
             for (int j = 0; j < CHESSBOARD_COL_SIZE.getNum(); j++) {
                 ChessboardPoint temp = new ChessboardPoint(i, j);
+                PlayerColor playerColor = i>4?PlayerColor.BLUE:PlayerColor.RED;
                 CellComponent cell;
                 if (riverCell.contains(temp)) {
-                    cell = new CellComponent(Color.CYAN, calculatePoint(i, j), CHESS_SIZE);
+                    cell = new CellComponent(Color.CYAN, calculatePoint(i, j), CHESS_SIZE,null);
                     this.add(cell);
                 } else if(denCell.contains(temp)) {
-                    cell = new CellComponent(Color.orange, calculatePoint(i, j), CHESS_SIZE);
+                    cell = new CellComponent(Color.orange, calculatePoint(i, j), CHESS_SIZE,playerColor);
                     this.add(cell);
                 } else if(trapCell.contains(temp)) {
-                    cell = new CellComponent(Color.GREEN, calculatePoint(i, j), CHESS_SIZE);
+                    cell = new CellComponent(Color.GREEN, calculatePoint(i, j), CHESS_SIZE,playerColor);
                     this.add(cell);
                 } else {
-                    cell = new CellComponent(Color.LIGHT_GRAY, calculatePoint(i, j), CHESS_SIZE);
+                    cell = new CellComponent(Color.LIGHT_GRAY, calculatePoint(i, j), CHESS_SIZE,null);
                     this.add(cell);
                 }
                 gridComponents[i][j] = cell;
@@ -119,8 +122,11 @@ public class ChessboardComponent extends JComponent implements Serializable {
         return chess;
     }
 
-    private CellComponent getGridComponentAt(ChessboardPoint point) {
+    public CellComponent getGridComponentAt(ChessboardPoint point) {
         return gridComponents[point.getRow()][point.getCol()];
+    }
+    public ChessComponent getChessComponentAt(ChessboardPoint point){
+        return (ChessComponent) getGridComponentAt(point).getComponents()[0];
     }
     private ChessboardPoint getChessboardPoint(Point point) {
         System.out.println("[" + point.y/CHESS_SIZE +  ", " +point.x/CHESS_SIZE + "] Clicked");
@@ -158,9 +164,7 @@ public class ChessboardComponent extends JComponent implements Serializable {
                 System.out.print("None chess here and ");
                 try {
                     gameController.onPlayerClickCell(getChessboardPoint(e.getPoint()), (CellComponent) clickedComponent);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                } catch (ClassNotFoundException ex) {
+                } catch (IOException | ClassNotFoundException ex) {
                     throw new RuntimeException(ex);
                 }
             } else {

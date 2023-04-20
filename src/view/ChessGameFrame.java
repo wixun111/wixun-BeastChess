@@ -37,19 +37,17 @@ public class ChessGameFrame extends JFrame {
             addRestartButton();
             addSaveButton();
             addLoadButton();
-            addUndoButton();
         }
+        addUndoButton();
     }
 
     public ChessboardComponent getChessboardComponent() {
         return chessboardComponent;
     }
 
-    public void setChessboardComponent(ChessboardComponent chessboardComponent) {
-        this.chessboardComponent = chessboardComponent;
-    }
     public void setGame(GameController game) {
         this.game = game;
+        addPlayerLabel();
     }
 
     /**
@@ -66,36 +64,50 @@ public class ChessGameFrame extends JFrame {
      */
     private void addLabel() {
         JLabel statusLabel = new JLabel("斗兽棋");
-        statusLabel.setLocation(HEIGTH, HEIGTH / 10);
+        statusLabel.setLocation(HEIGTH, HEIGTH / 10-40);
         statusLabel.setSize(200, 60);
         statusLabel.setFont(new Font("Rockwell", Font.BOLD, 40));
         add(statusLabel);
     }
     private void addModeLabel(int mode) {
         String modeName ="";
+        Color color = null;
         if(mode==0){
             modeName = "单机模式";
+            color = Color.black;
         }else if(mode==1){
-            modeName = "联网模式（主机蓝）";
+            modeName = "联机模式（主机蓝）";
+            color = Color.BLUE;
         }else if(mode==2){
-            modeName = "联网模式（客户红）";
+            modeName = "联机模式（客户红）";
+            color = Color.RED;
         }
         JLabel statusLabel = new JLabel(modeName);
-        statusLabel.setLocation(HEIGTH-100, HEIGTH / 10+80);
+        if (mode!= 0)statusLabel.setLocation(HEIGTH-100, HEIGTH / 10+40);
+        else statusLabel.setLocation(HEIGTH, HEIGTH / 10+40);
         statusLabel.setSize(400, 60);
+        Font font = new Font("Rockwell", Font.BOLD, 40);
+        statusLabel.setForeground(color);
+        statusLabel.setFont(font);
+        add(statusLabel);
+    }
+    private void addPlayerLabel(){
+        JLabel statusLabel = new JLabel("走子方");
+        statusLabel.setForeground(game.getCurrentPlayer().getColor());
+        statusLabel.setLocation(HEIGTH, HEIGTH / 10+440);
+        statusLabel.setSize(200, 60);
         statusLabel.setFont(new Font("Rockwell", Font.BOLD, 40));
         add(statusLabel);
     }
     private void addRestartButton() {
         JButton button = new JButton("重新开始");
         button.addActionListener((e) -> {
-            GameController gameController = null;
             try {
                 game = new GameController(getChessboardComponent(), new Chessboard(false),false,game.getMode(),null);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-            setGame(game);
+            getContentPane().getComponent(getContentPane().getComponentCount()-1).setForeground(game.getCurrentPlayer().getColor());
             setVisible(true);
         });
         button.setLocation(HEIGTH, HEIGTH / 10 + 120);
@@ -126,7 +138,7 @@ public class ChessGameFrame extends JFrame {
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-            setGame(game);
+            getContentPane().getComponent(getContentPane().getComponentCount()-1).setForeground(game.getCurrentPlayer().getColor());
             setVisible(true);
             JOptionPane.showMessageDialog(this,"读取成功");
         });

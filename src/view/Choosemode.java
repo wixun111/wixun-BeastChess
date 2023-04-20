@@ -11,19 +11,15 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Map;
 
 public class Choosemode extends JFrame {
     private final int WIDTH;
     private final int HEIGTH;
-    private Map Buttons;
-    private Server server;
 
     private Socket accept;
     public Choosemode(int width, int height){
         this.HEIGTH = height;
         this.WIDTH = width;
-        this.server = null;
         setSize(width,height);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -35,8 +31,8 @@ public class Choosemode extends JFrame {
     private void addNetButton() {
         JButton button = new JButton("联网模式");
         button.addActionListener((e) -> {
-            remove((JButton) getContentPane().getComponent(0));
-            remove((JButton) getContentPane().getComponent(0));
+            remove(getContentPane().getComponent(0));
+            remove(getContentPane().getComponent(0));
             invalidate();
             addClientButton();
             addServerButton();
@@ -60,7 +56,7 @@ public class Choosemode extends JFrame {
     }
     public void start(int mode,Socket socket){
         ChessGameFrame mainFrame = new ChessGameFrame(1100, 750, mode);
-        GameController gameController = null;
+        GameController gameController;
         try {
             gameController = new GameController(mainFrame.getChessboardComponent(), new Chessboard(false),false,mode,socket);
         } catch (IOException e) {
@@ -73,13 +69,13 @@ public class Choosemode extends JFrame {
         JButton button = new JButton("创建主机");
         button.addActionListener((e) -> {
             Server server = new Server(8888);
-            remove((JButton) getContentPane().getComponent(0));
-            remove((JButton) getContentPane().getComponent(0));
+            remove(getContentPane().getComponent(0));
+            remove(getContentPane().getComponent(0));
             addLabel();
             repaint();
             try {
                 ServerSocket serverSocket = new ServerSocket(8888);
-                JOptionPane.showMessageDialog(this, "你的主机地址："+InetAddress.getLocalHost().getHostAddress()+"\n你的端口号： "+server.getPort());
+                //JOptionPane.showMessageDialog(this, "你的主机地址："+InetAddress.getLocalHost().getHostAddress()+"\n你的端口号： "+server.getPort());
                 new Thread(() -> {
                     try {
                         accept = serverSocket.accept();
@@ -102,11 +98,17 @@ public class Choosemode extends JFrame {
     private void addClientButton() {
         JButton button = new JButton("链接主机");
         button.addActionListener((e) -> {
-            String host = JOptionPane.showInputDialog(null,"请输入目标主机的IP：");
-            String port = JOptionPane.showInputDialog(null,"请输入目标主机的端口：");
+//            String host = JOptionPane.showInputDialog(null,"请输入目标主机的IP：");
+//            String port = JOptionPane.showInputDialog(null,"请输入目标主机的端口：");
+            String host = null;
+            try {
+                host = InetAddress.getLocalHost().getHostAddress();
+            } catch (UnknownHostException ex) {
+                throw new RuntimeException(ex);
+            }
+            String port = "8888";
             if((port!=null&&!port.equals(""))&&(host!=null&&!host.equals(""))){
-                Client client = null;
-                client = new Client(host,Integer.parseInt(port));
+                Client client = new Client(host,Integer.parseInt(port));
                 Socket socket = client.game();
                 if(socket!=null){
                     System.out.println("链接成功");

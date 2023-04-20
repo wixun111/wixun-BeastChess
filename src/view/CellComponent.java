@@ -1,5 +1,7 @@
 package view;
 
+import model.PlayerColor;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -9,14 +11,21 @@ import java.awt.*;
  */
 
 public class CellComponent extends JPanel {
-    private Color background;
+    private final Color background;
+    private final PlayerColor playerColor;
 
-    public CellComponent(Color background, Point location, int size) {
+    public CellComponent(Color background, Point location, int size,PlayerColor playerColor) {
         setLayout(new GridLayout(1,1));
         setLocation(location);
         setSize(size, size);
         this.background = background;
+        this.playerColor = playerColor;
     }
+
+    public PlayerColor getPlayerColor() {
+        return playerColor;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponents(g);

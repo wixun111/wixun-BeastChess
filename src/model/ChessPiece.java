@@ -5,10 +5,10 @@ import java.io.Serializable;
 
 public class ChessPiece implements Serializable {
     // the owner of the chess
-    private PlayerColor owner;
+    private final PlayerColor owner;
 
     // Elephant? Cat? Dog? ...
-    private String name;
+    private final String name;
     private int rank;
     private int saveRank;
 
@@ -25,9 +25,7 @@ public class ChessPiece implements Serializable {
             if(target.rank==8&&this.rank==1){
                 return true;
             }
-            if((target.rank<=this.rank&&!(this.rank==8&&target.rank==1))){
-                return true;
-            }
+            return target.rank <= this.rank && !(this.rank == 8 && target.rank == 1);
         }
         return false;
     }

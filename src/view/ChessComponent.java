@@ -12,8 +12,8 @@ import java.awt.*;
  * but this class only cares how to draw Chess on ChessboardComponent
  */
 public class ChessComponent extends JComponent {
-    private PlayerColor owner;
-    private ChessPiece piece;
+    private final PlayerColor owner;
+    private final ChessPiece piece;
     private boolean selected;
 
     public ChessComponent(ChessPiece piece, PlayerColor owner, int size) {
@@ -25,7 +25,7 @@ public class ChessComponent extends JComponent {
         setVisible(true);
     }
 
-    public boolean isSelected() {
+    private boolean isSelected() {
         return selected;
     }
 
@@ -43,22 +43,15 @@ public class ChessComponent extends JComponent {
         Font font = new Font("楷体", Font.PLAIN, getWidth() / 2);
         g2.setFont(font);
         g2.setColor(owner.getColor());
-        if(piece.getName().equals("Elephant")) {
-            g2.drawString("象", getWidth() / 4, getHeight() * 5 / 8+4);
-        }else if(piece.getName().equals("Lion")){
-            g2.drawString("狮", getWidth() / 4, getHeight() * 5 / 8+4);
-        }else if(piece.getName().equals("Tiger")){
-            g2.drawString("虎", getWidth() / 4, getHeight() * 5 / 8+4);
-        }else if(piece.getName().equals("Leopard")){
-            g2.drawString("豹", getWidth() / 4, getHeight() * 5 / 8+4);
-        }else if(piece.getName().equals("Wolf")){
-            g2.drawString("狼", getWidth() / 4, getHeight() * 5 / 8+4);
-        }else if(piece.getName().equals("Dog")){
-            g2.drawString("狗", getWidth() / 4, getHeight() * 5 / 8+4);
-        }else if(piece.getName().equals("Cat")){
-            g2.drawString("猫", getWidth() / 4, getHeight() * 5 / 8+4);
-        }else if(piece.getName().equals("Rat")){
-            g2.drawString("鼠", getWidth() / 4, getHeight() * 5 / 8+4);
+        switch (piece.getName()) {
+            case "Elephant" -> g2.drawString("象", getWidth() / 4, getHeight() * 5 / 8 + 4);
+            case "Lion" -> g2.drawString("狮", getWidth() / 4, getHeight() * 5 / 8 + 4);
+            case "Tiger" -> g2.drawString("虎", getWidth() / 4, getHeight() * 5 / 8 + 4);
+            case "Leopard" -> g2.drawString("豹", getWidth() / 4, getHeight() * 5 / 8 + 4);
+            case "Wolf" -> g2.drawString("狼", getWidth() / 4, getHeight() * 5 / 8 + 4);
+            case "Dog" -> g2.drawString("狗", getWidth() / 4, getHeight() * 5 / 8 + 4);
+            case "Cat" -> g2.drawString("猫", getWidth() / 4, getHeight() * 5 / 8 + 4);
+            case "Rat" -> g2.drawString("鼠", getWidth() / 4, getHeight() * 5 / 8 + 4);
         }
         if (isSelected()) { // Highlights the model if selected.
             g.drawOval(5, 5, getWidth()-10, getHeight()-10);

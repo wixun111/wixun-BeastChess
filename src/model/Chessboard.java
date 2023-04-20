@@ -8,14 +8,12 @@ import view.ChessboardComponent;
  * The Chessboard has 9*7 cells, and each cell has a position for chess
  */
 public class Chessboard {
-    private Cell[][] grid;
+    private final Cell[][] grid;
 
     public Chessboard(boolean isLoad) {
         this.grid = new Cell[Constant.CHESSBOARD_ROW_SIZE.getNum()][Constant.CHESSBOARD_COL_SIZE.getNum()];//19X19
         initGrid();
-        if(!isLoad){
-            initPieces();
-        }
+        if(!isLoad) initPieces();
     }
 
     private void initGrid() {
@@ -87,27 +85,31 @@ public class Chessboard {
     }
 
     public boolean isValidMove(ChessboardComponent view,ChessboardPoint src, ChessboardPoint dest) {
-        if(getChessPieceAt(src) != null&&(getChessPieceAt(src).getName().equals("Tiger")||getChessPieceAt(src).getName().equals("Lion"))&&!(calculateDistance(src, dest)==1)){
-            return canJump(view,src,dest);
+        if (getChessPieceAt(src) != null&&(getChessPieceAt(src).getName().equals("Tiger")||getChessPieceAt(src).getName().equals("Lion"))){
+//        if(getChessPieceAt(src) != null&&(getChessPieceAt(src).getName().equals("Tiger")||getChessPieceAt(src).getName().equals("Lion"))&&!(calculateDistance(src, dest)==1)){
+            return true;
+//            return canJump(view,src,dest);
         }
-        if (getChessPieceAt(src) == null || getChessPieceAt(dest) != null||(view.riverCell.contains(dest)&&!getChessPieceAt(src).getName().equals("Rat"))) {
+        if (view.getDenCell().contains(dest)&&view.getGridComponentAt(dest).getPlayerColor()==getChessPieceOwner(src)) return false;
+        if (getChessPieceAt(src)==null||getChessPieceAt(dest)!=null||(view.riverCell.contains(dest)&&!getChessPieceAt(src).getName().equals("Rat"))) {
             System.out.println(("Illegal chess move!"));
             return false;
         }
-        //return true;
-        return calculateDistance(src, dest) == 1;
+        return true;
+        //return calculateDistance(src, dest) == 1;
     }
 
 
     public boolean isValidCapture(ChessboardComponent view,ChessboardPoint src, ChessboardPoint dest) {
-        if(getChessPieceAt(src) != null&&(getChessPieceAt(src).getName().equals("Tiger")||getChessPieceAt(src).getName().equals("Lion"))&&!(calculateDistance(src, dest)==1)){
+        if(getChessPieceAt(src) != null&&(getChessPieceAt(src).getName().equals("Tiger")||getChessPieceAt(src).getName().equals("Lion"))){
+//        if(getChessPieceAt(src) != null&&(getChessPieceAt(src).getName().equals("Tiger")||getChessPieceAt(src).getName().equals("Lion"))&&!(calculateDistance(src, dest)==1)){
             return canJump(view,src,dest);
         }
         if((view.riverCell.contains(dest)||view.riverCell.contains(src))&&!getChessPieceAt(src).getName().equals("Rat")){
             return false;
         }
-        return calculateDistance(src, dest) == 1;
-        //return true;
+        //return calculateDistance(src, dest) == 1;
+        return true;
     }
     public boolean canJump(ChessboardComponent view,ChessboardPoint src, ChessboardPoint dest){
         System.out.println(dest.toString());
