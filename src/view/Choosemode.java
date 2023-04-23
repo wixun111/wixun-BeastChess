@@ -58,7 +58,7 @@ public class Choosemode extends JFrame {
         ChessGameFrame mainFrame = new ChessGameFrame(1100, 750, mode);
         GameController gameController;
         try {
-            gameController = new GameController(mainFrame.getChessboardComponent(), new Chessboard(false),false,mode,socket);
+            gameController = new GameController(mainFrame.getChessboardComponent(), new Chessboard(false),mode,socket);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

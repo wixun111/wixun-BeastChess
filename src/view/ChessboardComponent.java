@@ -46,11 +46,18 @@ public class ChessboardComponent extends JComponent implements Serializable {
         Cell[][] grid = chessboard.getGrid();
         for (int i = 0; i < CHESSBOARD_ROW_SIZE.getNum(); i++) {
             for (int j = 0; j < CHESSBOARD_COL_SIZE.getNum(); j++) {
-                gridComponents[i][j].removeAll();
                 if (grid[i][j].getPiece() != null) {
                     ChessPiece chessPiece = grid[i][j].getPiece();
                     gridComponents[i][j].add(new ChessComponent(chessPiece,chessPiece.getOwner(), CHESS_SIZE));
                 }
+            }
+        }
+    }
+    public void removeChessComponent(){
+        for (int i = 0; i < CHESSBOARD_ROW_SIZE.getNum(); i++) {
+            for (int j = 0; j < CHESSBOARD_COL_SIZE.getNum(); j++) {
+                gridComponents[i][j].removeAll();
+                gridComponents[i][j].revalidate();
             }
         }
     }

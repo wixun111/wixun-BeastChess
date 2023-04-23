@@ -6,6 +6,7 @@ import model.Chessboard;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.net.Socket;
 
 /**
  * 这个类表示游戏过程中的整个游戏界面，是一切的载体
@@ -29,14 +30,16 @@ public class ChessGameFrame extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); //设置程序关闭按键，如果点击右上方的叉就游戏全部关闭了
         setLayout(null);
 
-
         addChessboard();
         addLabel();
         addModeLabel(mode);
+        addRestartButton();
         if(mode==0){
-            addRestartButton();
             addSaveButton();
             addLoadButton();
+        }
+        if(mode!=0){
+            addCapitulateButton();
         }
         addUndoButton();
     }
@@ -102,15 +105,26 @@ public class ChessGameFrame extends JFrame {
     private void addRestartButton() {
         JButton button = new JButton("重新开始");
         button.addActionListener((e) -> {
-            try {
-                game = new GameController(getChessboardComponent(), new Chessboard(false),false,game.getMode(),null);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-            getContentPane().getComponent(getContentPane().getComponentCount()-1).setForeground(game.getCurrentPlayer().getColor());
-            setVisible(true);
+            if(game.getMode()!=0)
+                if(!game.isOver()) return;
+                else{
+                    game.setAskType(1);
+                    game.assume();
+                    return;
+                }
+            game.restart(false);
         });
         button.setLocation(HEIGTH, HEIGTH / 10 + 120);
+        button.setSize(200, 60);
+        button.setFont(new Font("Rockwell", Font.BOLD, 20));
+        add(button);
+    }
+    private void addCapitulateButton() {
+        JButton button = new JButton("认输");
+        button.addActionListener((e) -> {
+            game.capitulate();
+        });
+        button.setLocation(HEIGTH, HEIGTH / 10 + 280);
         button.setSize(200, 60);
         button.setFont(new Font("Rockwell", Font.BOLD, 20));
         add(button);
@@ -133,13 +147,7 @@ public class ChessGameFrame extends JFrame {
     private void addLoadButton() {
         JButton button = new JButton("读取");
         button.addActionListener((e) -> {
-            try {
-                game = new GameController(getChessboardComponent(),new Chessboard(true),true,game.getMode(),null);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-            getContentPane().getComponent(getContentPane().getComponentCount()-1).setForeground(game.getCurrentPlayer().getColor());
-            setVisible(true);
+            game.restart(true);
             JOptionPane.showMessageDialog(this,"读取成功");
         });
         button.setLocation(HEIGTH, HEIGTH / 10 + 280);
@@ -155,7 +163,6 @@ public class ChessGameFrame extends JFrame {
         button.setFont(new Font("Rockwell", Font.BOLD, 20));
         add(button);
     }
-
 //    private void addLoadButton() {
 //        JButton button = new JButton("Load");
 //        button.setLocation(HEIGTH, HEIGTH / 10 + 240);
