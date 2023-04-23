@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class Choosemode extends JFrame {
     private final int WIDTH;
@@ -75,7 +74,7 @@ public class Choosemode extends JFrame {
             repaint();
             try {
                 ServerSocket serverSocket = new ServerSocket(8888);
-                //JOptionPane.showMessageDialog(this, "你的主机地址："+InetAddress.getLocalHost().getHostAddress()+"\n你的端口号： "+server.getPort());
+                JOptionPane.showMessageDialog(this, "你的主机地址："+InetAddress.getLocalHost().getHostAddress()+"\n你的端口号： "+server.getPort());
                 new Thread(() -> {
                     try {
                         accept = serverSocket.accept();
@@ -98,15 +97,8 @@ public class Choosemode extends JFrame {
     private void addClientButton() {
         JButton button = new JButton("链接主机");
         button.addActionListener((e) -> {
-//            String host = JOptionPane.showInputDialog(null,"请输入目标主机的IP：");
-//            String port = JOptionPane.showInputDialog(null,"请输入目标主机的端口：");
-            String host = null;
-            try {
-                host = InetAddress.getLocalHost().getHostAddress();
-            } catch (UnknownHostException ex) {
-                throw new RuntimeException(ex);
-            }
-            String port = "8888";
+            String host = JOptionPane.showInputDialog(null,"请输入目标主机的IP：");
+            String port = JOptionPane.showInputDialog(null,"请输入目标主机的端口：");
             if((port!=null&&!port.equals(""))&&(host!=null&&!host.equals(""))){
                 Client client = new Client(host,Integer.parseInt(port));
                 Socket socket = client.game();
