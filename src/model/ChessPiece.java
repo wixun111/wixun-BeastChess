@@ -11,17 +11,28 @@ public class ChessPiece implements Serializable {
     private final String name;
     private int rank;
     private int saveRank;
+    private int value;
 
     public ChessPiece(PlayerColor owner, String name, int rank) {
         this.owner = owner;
         this.name = name;
         this.rank = rank;
         this.saveRank = rank;
+        this.value = switch (name) {
+            case "Elephant" -> 2300;
+            case "Lion" -> 1500;
+            case "Tiger" -> 1300;
+            case "Leopard" -> 1000;
+            case "Wolf","Rat" -> 800;
+            case "Dog"  -> 700;
+            case "Cat" -> 400;
+            default -> 0;
+        };
     }
+
 
     public boolean canCapture(ChessPiece target) {
         if(!target.owner.getColor().equals(this.owner.getColor())){
-            System.out.printf("(piece rank:%d target rank:%d)\n",this.rank,target.rank);
             if(target.rank==8&&this.rank==1){
                 return true;
             }
@@ -40,8 +51,12 @@ public class ChessPiece implements Serializable {
     public PlayerColor getOwner() {
         return owner;
     }
+
+    public int getValue() {
+        return value;
+    }
+
     public void setRank(int rank) {
-        this.saveRank = this.rank;
         this.rank = rank;
     }
     public void setRank() {
