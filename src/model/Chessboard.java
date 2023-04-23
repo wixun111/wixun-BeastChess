@@ -24,7 +24,7 @@ public class Chessboard {
         }
     }
 
-    private void initPieces() {
+    public void initPieces() {
         grid[0][0].setPiece(new ChessPiece(PlayerColor.RED, "Lion",7));
         grid[0][6].setPiece(new ChessPiece(PlayerColor.RED, "Tiger",6));
         grid[1][1].setPiece(new ChessPiece(PlayerColor.RED, "Dog",3));
@@ -41,6 +41,13 @@ public class Chessboard {
         grid[6][4].setPiece(new ChessPiece(PlayerColor.BLUE, "Leopard",5));
         grid[6][2].setPiece(new ChessPiece(PlayerColor.BLUE, "Wolf",4));
         grid[6][0].setPiece(new ChessPiece(PlayerColor.BLUE, "Elephant",8));
+    }
+    public void removePieces(){
+        for (int i = 0; i < Constant.CHESSBOARD_ROW_SIZE.getNum(); i++) {
+            for (int j = 0; j < Constant.CHESSBOARD_COL_SIZE.getNum(); j++) {
+                grid[i][j].removePiece();
+            }
+        }
     }
     public void setGrid(int row, int col, int rank, String color, String name){
         grid[row][col].setPiece(new ChessPiece(color.equals("BLUE")?PlayerColor.BLUE:PlayerColor.RED,name,rank));
