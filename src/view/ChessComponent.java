@@ -57,4 +57,8 @@ public class ChessComponent extends JComponent {
             g.drawOval(5, 5, getWidth()-10, getHeight()-10);
         }
     }
+    @Override
+    public String toString() {
+        return this.piece.getName();
+    }
 }

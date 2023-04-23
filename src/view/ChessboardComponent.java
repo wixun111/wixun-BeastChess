@@ -46,7 +46,6 @@ public class ChessboardComponent extends JComponent implements Serializable {
         Cell[][] grid = chessboard.getGrid();
         for (int i = 0; i < CHESSBOARD_ROW_SIZE.getNum(); i++) {
             for (int j = 0; j < CHESSBOARD_COL_SIZE.getNum(); j++) {
-                gridComponents[i][j].removeAll();
                 if (grid[i][j].getPiece() != null) {
                     ChessPiece chessPiece = grid[i][j].getPiece();
                     gridComponents[i][j].add(new ChessComponent(chessPiece,chessPiece.getOwner(), CHESS_SIZE));
@@ -54,8 +53,20 @@ public class ChessboardComponent extends JComponent implements Serializable {
             }
         }
     }
+    public void removeChessComponent(){
+        for (int i = 0; i < CHESSBOARD_ROW_SIZE.getNum(); i++) {
+            for (int j = 0; j < CHESSBOARD_COL_SIZE.getNum(); j++) {
+                gridComponents[i][j].removeAll();
+                gridComponents[i][j].revalidate();
+            }
+        }
+    }
     public int getChessSize(){
         return CHESS_SIZE;
+    }
+
+    public Set<ChessboardPoint> getRiverCell() {
+        return riverCell;
     }
 
     public Set<ChessboardPoint> getDenCell() {
@@ -114,7 +125,6 @@ public class ChessboardComponent extends JComponent implements Serializable {
         getGridComponentAt(point).add(chess);
     }
     public ChessComponent removeChessComponentAtGrid(ChessboardPoint point) {
-        // Note re-validation is required after remove / removeAll.
         ChessComponent chess = (ChessComponent) getGridComponentAt(point).getComponents()[0];
         getGridComponentAt(point).removeAll();
         getGridComponentAt(point).revalidate();
@@ -142,18 +152,18 @@ public class ChessboardComponent extends JComponent implements Serializable {
         super.paintComponent(g);
         g.setColor(Color.yellow);
         ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if(j<3) {
-                    g.setColor(Color.RED);
-                    g.drawRect(i*CHESS_SIZE ,j*CHESS_SIZE ,CHESS_SIZE,CHESS_SIZE);
-                }
-                else if(j>5){
-                    g.setColor(Color.CYAN);
-                    g.drawRect(i*CHESS_SIZE ,j*CHESS_SIZE ,CHESS_SIZE,CHESS_SIZE);
-                }
-            }
-        }
+//        for (int i = 0; i < 9; i++) {
+//            for (int j = 0; j < 9; j++) {
+//                if(j<3) {
+//                    g.setColor(Color.RED);
+//                    g.drawRect(i*CHESS_SIZE ,j*CHESS_SIZE ,CHESS_SIZE,CHESS_SIZE);
+//                }
+//                else if(j>5){
+//                    g.setColor(Color.CYAN);
+//                    g.drawRect(i*CHESS_SIZE ,j*CHESS_SIZE ,CHESS_SIZE,CHESS_SIZE);
+//                }
+//            }
+//        }
     }
 
     @Override
@@ -169,6 +179,8 @@ public class ChessboardComponent extends JComponent implements Serializable {
                 }
             } else {
                 System.out.print("One chess here and ");
+                ChessPiece chessPiece = gameController.getModel().getChessPieceAt(getChessboardPoint(e.getPoint()));
+                System.out.print("Piece:"+chessPiece+"  Rank:" + chessPiece.getRank()+"\n");
                 gameController.onPlayerClickChessPiece(getChessboardPoint(e.getPoint()), (ChessComponent) clickedComponent.getComponents()[0]);
             }
         }

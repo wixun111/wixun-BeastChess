@@ -51,6 +51,6 @@ public class ChessboardPoint implements Serializable {
 
     @Override
     public String toString() {
-        return row+" "+ col +" ";
+        return "("+ (row+1) +","+ (col+1) +")";
     }
 }
