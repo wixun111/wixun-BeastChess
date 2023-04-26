@@ -3,7 +3,7 @@ package model;
 
 import java.io.Serializable;
 
-public class ChessPiece implements Serializable {
+public class ChessPiece implements Serializable,Cloneable {
     // the owner of the chess
     private final PlayerColor owner;
 

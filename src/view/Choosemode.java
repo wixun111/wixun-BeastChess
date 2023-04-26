@@ -148,7 +148,7 @@ public class Choosemode extends JFrame {
     private void addSimpleButton() {
         JButton button = new JButton("简单");
         button.addActionListener((e) -> {
-            start(3,null,2);
+            start(3,null,4);
             dispose();
         });
         button.setLocation(WIDTH /2-150, HEIGHT /2-120);
@@ -159,7 +159,7 @@ public class Choosemode extends JFrame {
     private void addNormalButton() {
         JButton button = new JButton("普通");
         button.addActionListener((e) -> {
-            start(3,null,4);
+            start(3,null,6);
             dispose();
         });
         button.setLocation(WIDTH /2-150, HEIGHT /2);
@@ -170,7 +170,7 @@ public class Choosemode extends JFrame {
     private void addDiffcultButton() {
         JButton button = new JButton("困难");
         button.addActionListener((e) -> {
-            start(3,null,6);
+            start(3,null,7);
             dispose();
         });
         button.setLocation(WIDTH /2-150, HEIGHT /2+120);
