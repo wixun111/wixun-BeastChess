@@ -25,17 +25,16 @@ import java.util.Stack;
 */
 public class GameController implements GameListener{
     private Chessboard model;
-    private ChessboardComponent view;
+    private final ChessboardComponent view;
     private PlayerColor currentPlayer;
     private final PlayerColor Player;
     private ChessboardPoint selectedPoint;
-    private AI computer;
+    private final AI computer;
     private boolean over;
-    private int redCount,blueCount;
     private final int mode;
     private final Socket socket;
     private Stack<Object[]> stack = new Stack<>();
-    private final String lock = new String();
+    private final String lock = "";
     private boolean canUndo;
     private int askUndo = 0;
     private int askType = 0;
@@ -67,6 +66,10 @@ public class GameController implements GameListener{
         return model;
     }
 
+    public Stack<Object[]> getStack() {
+        return stack;
+    }
+
     public boolean isOver() {
         return over;
     }
@@ -88,8 +91,6 @@ public class GameController implements GameListener{
         selectedPoint = null;
         askType = 0;
         askUndo = 0;
-        redCount = 8;
-        blueCount = 8;
     }
     private void createInThread(){
         while (true){
@@ -99,7 +100,7 @@ public class GameController implements GameListener{
                 if(in.getClass().equals(Integer.class)){
                     if((int)in == 0){//收到悔棋请求
                         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                        if(JOptionPane.showConfirmDialog(view.getParent(),"是否允许对方悔棋？","悔棋请求",0)==0){
+                        if(JOptionPane.showConfirmDialog(view.getParent(),"是否允许对方悔棋？","悔棋请求", JOptionPane.YES_NO_OPTION)==0){
                             oos.writeObject(1);
                             canUndo = true;
                             undo();
@@ -118,13 +119,9 @@ public class GameController implements GameListener{
                         if(Player==PlayerColor.BLUE) JOptionPane.showMessageDialog(view, "Blue player wins!");
                         else JOptionPane.showMessageDialog(view, "Red player wins!");
                         over = true;
-                    }else if ((int)in == 2){//收到认输回复
-                        if(Player==PlayerColor.BLUE) JOptionPane.showMessageDialog(view, "Blue player wins!");
-                        else JOptionPane.showMessageDialog(view, "Red player wins!");
-                        over = true;
                     }else if ((int)in == 3){//收到重开请求
                         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                        if(JOptionPane.showConfirmDialog(view.getParent(),"是否开始新的一局？","重开请求",0)==0){
+                        if(JOptionPane.showConfirmDialog(view.getParent(),"是否开始新的一局？","重开请求", JOptionPane.YES_NO_OPTION)==0){
                             restart(false);
                             oos.writeObject(4);
                         }else {
@@ -134,7 +131,7 @@ public class GameController implements GameListener{
                         restart(false);
                     }else if ((int)in == 5){
                         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                        if(JOptionPane.showConfirmDialog(view.getParent(),"是否读取棋谱？","读谱请求",0)==0){
+                        if(JOptionPane.showConfirmDialog(view.getParent(),"是否读取棋谱？","读谱请求", JOptionPane.YES_NO_OPTION)==0){
                             oos.writeObject(6);
                         }else {
                             oos.writeObject(-1);
@@ -144,14 +141,14 @@ public class GameController implements GameListener{
                         restart(true);
                         permit = false;
                         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                        oos.writeObject(new Object[]{blueCount,redCount,currentPlayer,over,model,stack});
+                        oos.writeObject(new Object[]{currentPlayer,over,model,stack});
                         JOptionPane.showMessageDialog(view.getParent(),"读取成功");
                     }
                     else continue;
                 }else  {
                     Object[] input = (Object[]) in;
                     System.out.println(input[2]);
-                    if(input[0].getClass().equals(Integer.class)){
+                    if(input[0].getClass().equals(PlayerColor.class)){
                         loadData(input);
                         continue;
                     }
@@ -205,17 +202,17 @@ public class GameController implements GameListener{
 
     public void win(ChessboardPoint point, ChessPiece chess) {
 //        System.out.printf("(blue:%d red:%d)\n",blueCount,redCount);
-        if((view.denCell.contains(point)&&view.getGridComponentAt(point).getPlayerColor()!=chess.getOwner())||blueCount==0||redCount==0){
-            if(currentPlayer == PlayerColor.BLUE||redCount==0) JOptionPane.showMessageDialog(view, "Blue player wins!");
+        if((view.denCell.contains(point)&&view.getGridComponentAt(point).getPlayerColor()!=chess.getOwner())|| model.getBlueCount() ==0||model.getRedCount()==0){
+            if(currentPlayer == PlayerColor.BLUE||model.getRedCount()==0) JOptionPane.showMessageDialog(view, "Blue player wins!");
             else JOptionPane.showMessageDialog(view, "Red player wins!");
             over = true;
         }
     }
     public void save() throws IOException {
         File save = new File("save.txt");
-        if(!save.exists())save.createNewFile();
+        if(!save.exists()) save.createNewFile();
         ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("save.txt")));
-        oos.writeObject(new Object[]{blueCount,redCount,currentPlayer,over,model,stack});
+        oos.writeObject(new Object[]{currentPlayer,over,model,stack});
         oos.close();
     }
     private void load() throws IOException, ClassNotFoundException {
@@ -233,12 +230,10 @@ public class GameController implements GameListener{
         view.getParent().getComponent(view.getParent().getComponentCount()-1).setForeground(currentPlayer.getColor());
     }
     private void loadData(Object[] in){
-        blueCount = (int)in[0];
-        redCount = (int)in[1];
-        currentPlayer = (PlayerColor) in[2];
-        over = (boolean) in[3];
-        model = (Chessboard) in[4];
-        stack = (Stack<Object[]>) in[5];
+        currentPlayer = (PlayerColor) in[0];
+        over = (boolean) in[1];
+        model = (Chessboard) in[2];
+        stack = (Stack<Object[]>) in[3];
         view.removeChessComponent();
         view.initiateChessComponent(model);
         view.repaint();
@@ -246,7 +241,7 @@ public class GameController implements GameListener{
     }
     public void capitulate(){
         if(over) return;
-        if(JOptionPane.showConfirmDialog(view.getParent(),"你确认认输么？","认输确认",0)==1) return;
+        if(JOptionPane.showConfirmDialog(view.getParent(),"你确认认输么？","认输确认", JOptionPane.YES_NO_OPTION)==1) return;
         over = true;
         assume();
         if(Player == PlayerColor.BLUE) JOptionPane.showMessageDialog(view, "Red player wins!");
@@ -288,8 +283,7 @@ public class GameController implements GameListener{
             model.moveChessPiece(des,src);
             view.setChessComponentAtGrid(src, view.removeChessComponentAtGrid(des));
             if(target!=null){
-                if(target.getOwner().equals(PlayerColor.BLUE)) blueCount++;
-                else redCount++;
+                model.addCount(target.getOwner().equals(PlayerColor.BLUE));
                 model.setChessPiece(des,target);
                 view.setChessComponentAtGrid(des,new ChessComponent(target,target.getOwner(), view.getChessSize()));
             }
@@ -304,35 +298,33 @@ public class GameController implements GameListener{
             assume();
         }
     }
-    public void AIUndo(){
-        Object[] output = stack.pop();
-        ChessboardPoint src = (ChessboardPoint)output[0];
-        ChessboardPoint des = (ChessboardPoint)output[1];
-        ChessPiece target = (ChessPiece)output[2];
-        ChessPiece chess = model.getChessPieceAt(des);
-        if(chess!=null&&view.getGridComponentAt(des).getPlayerColor()!=chess.getOwner()){
-            if(view.getGridComponentAt(src).getPlayerColor()!=chess.getOwner()&&view.trapCell.contains(src)){
-                chess.setRank(0);
-            }
-            else if(view.trapCell.contains(des)){
-                chess.setRank();
-            }
-        }
-        model.moveChessPiece(des,src);
-        if(target!=null){
-            if(target.getOwner().equals(PlayerColor.BLUE)) blueCount++;
-            else redCount++;
-            model.setChessPiece(des,target);
-        }
-        swapColor();
-        over = false;
-    }
+//    public void AIUndo(){
+//        Object[] output = stack.pop();
+//        ChessboardPoint src = (ChessboardPoint)output[0];
+//        ChessboardPoint des = (ChessboardPoint)output[1];
+//        ChessPiece target = (ChessPiece)output[2];
+//        ChessPiece chess = model.getChessPieceAt(des);
+//        if(chess!=null&&view.getGridComponentAt(des).getPlayerColor()!=chess.getOwner()){
+//            if(view.getGridComponentAt(src).getPlayerColor()!=chess.getOwner()&&view.trapCell.contains(src)){
+//                chess.setRank(0);
+//            }
+//            else if(view.trapCell.contains(des)){
+//                chess.setRank();
+//            }
+//        }
+//        model.moveChessPiece(des,src);
+//        if(target!=null){
+//            if(target.getOwner().equals(PlayerColor.BLUE)) blueCount++;
+//            else redCount++;
+//            model.setChessPiece(des,target);
+//        }
+//        over = false;
+//    }
     public void concludeMove(ChessboardPoint src,ChessboardPoint des,ChessPiece target,Boolean AI){
         if(mode==3||mode==0)push(src,des,target);
         ChessPiece chess = model.getChessPieceAt(src);
         if(target!=null&&model.isValidCapture(view,src,des)){
-            if(target.getOwner()==PlayerColor.RED)redCount--;
-            else blueCount--;
+            model.minusCount(target.getOwner()==PlayerColor.RED);
             model.captureChessPiece(view,src,des);
             view.removeChessComponentAtGrid(des);
         }else model.moveChessPiece(src, des);
@@ -344,17 +336,16 @@ public class GameController implements GameListener{
 //        System.out.println(chess+" move from "+src+" to "+des);
         swapColor();
     }
-    public void AIConcludeMove(ChessboardPoint src,ChessboardPoint des,ChessPiece target){
-        push(src,des,target);
-        ChessPiece chess = model.getChessPieceAt(src);
-        if(target!=null&&model.isValidCapture(view,src,des)){
-            if(target.getOwner()==PlayerColor.RED)redCount--;
-            else blueCount--;
-            model.captureChessPiece(view,src,des);
-        }else model.moveChessPiece(src, des);
-        onTrap(src,des,chess);
-        swapColor();
-    }
+//    public void AIConcludeMove(ChessboardPoint src,ChessboardPoint des,ChessPiece target){
+//        push(src,des,target);
+//        ChessPiece chess = model.getChessPieceAt(src);
+//        if(target!=null&&model.isValidCapture(view,src,des)){
+//            if(target.getOwner()==PlayerColor.RED)redCount--;
+//            else blueCount--;
+//            model.captureChessPiece(view,src,des);
+//        }else model.moveChessPiece(src, des);
+//        onTrap(src,des,chess);
+//    }
     private void onTrap(ChessboardPoint selectedPoint,ChessboardPoint point,ChessPiece chess){
         if(view.getGridComponentAt(point).getPlayerColor()!=chess.getOwner()){
             if(view.trapCell.contains(point)){
@@ -393,8 +384,8 @@ public class GameController implements GameListener{
                 assume();
             }
             concludeMove(selectedPoint,point,target,false);
-            if(mode==3&&!over) computer.AiTurn();
-            //if(mode==3) new Thread(() ->computer.AiTurn()).start();
+//            if(mode==3&&!over) computer.AiTurn();
+            if(mode==3) new Thread(() -> computer.AiTurn(model,this)).start();
         }
     }
 
@@ -424,7 +415,8 @@ public class GameController implements GameListener{
                     assume();
                 }
                 concludeMove(selectedPoint,point,target,false);
-                if(mode==3&&!over) computer.AiTurn();
+//                if(mode==3&&!over) computer.AiTurn();
+                if(mode==3) new Thread(() -> computer.AiTurn(model,this)).start();
             }
             view.repaint();
         }
