@@ -385,7 +385,7 @@ public class GameController implements GameListener{
             }
             concludeMove(selectedPoint,point,target,false);
 //            if(mode==3&&!over) computer.AiTurn();
-            if(mode==3) new Thread(computer::AiTurn).start();
+            if(mode==3) new Thread(() -> computer.AiTurn(model,this)).start();
         }
     }
 
@@ -416,7 +416,7 @@ public class GameController implements GameListener{
                 }
                 concludeMove(selectedPoint,point,target,false);
 //                if(mode==3&&!over) computer.AiTurn();
-                if(mode==3) new Thread(computer::AiTurn).start();
+                if(mode==3) new Thread(() -> computer.AiTurn(model,this)).start();
             }
             view.repaint();
         }

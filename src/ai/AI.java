@@ -7,7 +7,6 @@ import model.ChessboardPoint;
 import model.PlayerColor;
 import view.ChessboardComponent;
 
-import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -35,54 +34,74 @@ public class AI {
         this.difficulty = difficulty;
         this.view = game.getView();
     }
-    public void AiTurn(){
+    public void AiTurn(Chessboard model,GameController game){
         maxAtomic.set(-INF);
         int row = 0,col = 0,x = 0,y = 0;
         int[] dirx ={1,0,0,-1};int[] diry = {0,1,-1,0};
         long current1=System.currentTimeMillis();
+        AIBoard aiBoard = transform(model,game);
+        ExecutorService executor = Executors.newFixedThreadPool(12);
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 7; j++) {
-                ChessboardPoint src = new ChessboardPoint(i, j);
-                ChessPiece chess = model.getChessPieceAt(src);
-                if (chess == null || chess.getOwner() == PlayerColor.BLUE) continue;
-//                System.out.printf("(%d %d)\n",i+1,j+1);
-                ExecutorService executor = Executors.newFixedThreadPool(4);
+                int[] src = new int[]{i,j};
+                int[] chess = aiBoard.getChessPieceAt(src);
+                if (chess[0] == 0 || chess[4] == 1) continue;
                 for (int k = 0; k < 4; k++) {
                     int finalI = i;
                     int finalJ = j;
                     int finalK = k;
-                    AIBoard aiBoard = transform(model,game);
-                    ChessPiece finalChess = aiBoard.getChessPieceAt(src);
+                    AIBoard finalAiBoard = transform(model,game);
+                    int[] finalChess = finalAiBoard.getChessPieceAt(src);
                     executor.submit(() -> {
                         if (finalI + dirx[finalK] < 0 || finalI + dirx[finalK] > 8 || finalJ + diry[finalK] < 0 || finalJ + diry[finalK] > 6) return;
-                        ChessboardPoint des = new ChessboardPoint(finalI + dirx[finalK], finalJ + diry[finalK]);
-                        ChessPiece target = aiBoard.getChessPieceAt(des);
-                        if ((finalChess.getName().equals("Lion") || finalChess.getName().equals("Tiger")) && view.riverCell.contains(des)) {
-                            des = aiBoard.Jump(view, src, des);
+                        int[] des = new int[]{finalI + dirx[finalK], finalJ + diry[finalK]};
+                        int[] target = finalAiBoard.getChessPieceAt(des);
+                        if ((finalChess[0]==7 || finalChess[0]==6) && finalAiBoard.getTerrainAt(des)[0]==3) {
+                            des = finalAiBoard.Jump(src, des);
                             if (des == null) return;
-                            target = aiBoard.getChessPieceAt(des);
-                            if (target != null && !aiBoard.isValidCapture(view, src, des)) return;
-                            AIConcludeMove(src, des, target,aiBoard);
-                        } else if (!aiBoard.isValidMove(view, src, des) && !aiBoard.isValidCapture(view, src, des)) return;
-                        else AIConcludeMove(src, des, target,aiBoard);
-                        int temp = alphabeta(1, -INF, INF, 1,aiBoard);
-                        AIUndo(aiBoard);
+                            target = finalAiBoard.getChessPieceAt(des);
+                            if (target[0] != 0 && !finalAiBoard.isValidCapture(src, des)) return;
+                            finalAiBoard.AIConcludeMove(src, des, target);
+                        } else if (!finalAiBoard.isValidMove(src,des) && !finalAiBoard.isValidCapture(src,des)) return;
+                        else finalAiBoard.AIConcludeMove(src, des, target);
+//                    for (int t = 9; t != 17; t+=1) {
+//                        System.out.println(t+"   "+(finalPoints[t][0]+1)+"  "+(finalPoints[t][1]+1)+"   "+(t-9)+"   "+(finalPoints[t-9][0]+1)+"  "+(finalPoints[t-9][1]+1));
+//                    }
+//                    System.out.println();
+                        for (int m = 0; m < 9; m++) {
+                            for (int n = 0; n < 7; n++) {
+                                int[] point = new int[]{m,n};
+                                int[] chess1 = finalAiBoard.getChessPieceAt(point);
+                                System.out.printf("%2d",chess1[0]*chess1[4]);
+                            }
+                            System.out.println();
+                        }
+                        System.out.println();
+                        int temp = 0;
+                        try{temp = alphabeta(1, -INF, INF, 1,finalAiBoard);}
+                        catch (Exception e){
+                            System.out.println("???");
+                            e.printStackTrace();
+                        }
+                        System.out.println("depth:"+0+"   score:"+temp);
+                        finalAiBoard.AIUndo();
                         if(temp>maxAtomic.get()){
                             maxAtomic.set(temp);
                             rowAtomic.set(finalI);
                             colAtomic.set(finalJ);
-                            xAtomic.set(des.getRow());
-                            yAtomic.set(des.getCol());
+                            xAtomic.set(des[0]);
+                            yAtomic.set(des[1]);
                         }
+                        System.out.println();
                     });
                 }
-                executor.shutdown();
-                try {
-                    executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
             }
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
         System.out.println("Score:" + maxAtomic.get());
         ChessboardPoint src = new ChessboardPoint(rowAtomic.get(), colAtomic.get());
@@ -91,34 +110,44 @@ public class AI {
         System.out.println(model.getChessPieceAt(src));
         game.concludeMove(src, des, model.getChessPieceAt(des), false);
         long current2=System.currentTimeMillis();
-        System.out.printf("The running time is %.3f second",(current2-current1)/1000.0d);
+        System.out.printf("The running time is %.3f second\n",(current2-current1)/1000.0d);
     }
     private int alphabeta(int player,int alpha,int beta, int depth,AIBoard aiBoard){
         if(depth == 8||game.isOver()){
-            int score = getScore(aiBoard);
+            int score = aiBoard.getScore();
             return score;
         }
+        int[] dirx ={1,0,0,-1};int[] diry = {0,1,-1,0};
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 7; j++) {
-                ChessboardPoint src = new ChessboardPoint(i,j);
-                ChessPiece chess = aiBoard.getChessPieceAt(src);
-                if(chess==null||chess.getOwner()==(player==1?PlayerColor.RED:PlayerColor.BLUE)) continue;
-                int[] dirx ={1,0,0,-1};int[] diry = {0,1,-1,0};
+                int[] src = new int[]{i,j};
+                int[] chess = aiBoard.getChessPieceAt(src);
+                if(chess[0]==0||chess[4]!=player) continue;
                 for (int k = 0; k < 4; k++) {
                     if(i+dirx[k]<0||i+dirx[k]>8||j+diry[k]<0||j+diry[k]>6) continue;
-                    ChessboardPoint des = new ChessboardPoint(i+dirx[k],j+diry[k]);
-                    ChessPiece target = aiBoard.getChessPieceAt(des);
-                    if ((chess.getName().equals("Lion") || chess.getName().equals("Tiger")) && view.riverCell.contains(des)) {
-                        des = aiBoard.Jump(view, src, des);
+                    int[] des = new int[]{i+dirx[k],j+diry[k]};
+                    int[] target = aiBoard.getChessPieceAt(des);
+                    if ((chess[0]==7 || chess[0]==6) && aiBoard.getTerrainAt(des)[0]==3) {
+                        des = aiBoard.Jump(src, des);
                         if (des == null) continue;
                         target = aiBoard.getChessPieceAt(des);
-                        if (target != null && !aiBoard.isValidCapture(view, src, des)) continue;
-                        AIConcludeMove(src, des, target,aiBoard);
-                    }
-                    else if(!aiBoard.isValidMove(view,src,des)&&!aiBoard.isValidCapture(view,src,des)) continue;
-                    else AIConcludeMove(src, des, target,aiBoard);
+                        if (target[0] != 0 && !aiBoard.isValidCapture(src, des)) continue;
+                        aiBoard.AIConcludeMove(src, des, target);
+                    }else if(!aiBoard.isValidMove(src,des)&&!aiBoard.isValidCapture(src,des)) continue;
+                    else aiBoard.AIConcludeMove(src, des, target);
+//                    for (int m = 0; m < 9; m++) {
+//                        for (int n = 0; n < 7; n++) {
+//                            int[] point = new int[]{m,n};
+//                            int[] chess1 = aiBoard.getChessPieceAt(point);
+//                            System.out.printf("%2d",chess1[0]*chess1[4]);
+//                        }
+//                        System.out.println();
+//                    }
+//                    System.out.println();
                     int temp = alphabeta(-1*player,alpha,beta,depth+1,aiBoard);
-                    AIUndo(aiBoard);
+//                    System.out.println("depth:"+depth+"   score:"+temp);
+//                    System.out.println();
+                    aiBoard.AIUndo();
                     if (player==-1) alpha = Math.max(alpha,temp);
                     else beta = Math.min(beta,temp);
                     if(beta <= alpha){
@@ -133,84 +162,37 @@ public class AI {
             return alpha;
         return beta;
     }
-    private int getScore(AIBoard aiBoard){
-        int Score = 0;
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 7; j++) {
-                ChessboardPoint point = new ChessboardPoint(i,j);
-                ChessPiece chessPiece = aiBoard.getChessPieceAt(point);
-                if (chessPiece==null) continue;
-                String name = chessPiece.getName();
-                int value = chessPiece.getValue();
-                Boolean own = chessPiece.getOwner().equals(PlayerColor.RED);
-                Score += own?value:-value;
-                Score += own?value/200*i:-value/200*(8-i);
-                if(name.equals("Tiger")||name.equals("Lion")||name.equals("Rat")){
-                    if(i<6&i>1) Score+=own?150:-150;
-                }
-                if(game.getView().getRiverCell().contains(point)&&game.getView().getGridComponentAt(point).getPlayerColor()!=PlayerColor.RED) {
-                    Score += own?1000:-1000;
-                }
-                else if(game.getView().getDenCell().contains(point)) {
-                    Score += own?10000:-10000;
-                }
-            }
-        }
-        return Score;
-    }
-    public void AIConcludeMove(ChessboardPoint src,ChessboardPoint des,ChessPiece target,AIBoard aiBoard){
-        aiBoard.push(src,des,target);
-        ChessPiece chess = aiBoard.getChessPieceAt(src);
-        if(target!=null&&aiBoard.isValidCapture(view,src,des)){
-            aiBoard.minusCount(target.getOwner()==PlayerColor.RED);
-            aiBoard.captureChessPiece(view,src,des);
-        }else aiBoard.moveChessPiece(src, des);
-        onTrap(src,des,chess);
-    }
-    public void AIUndo(AIBoard aiBoard){
-        Object[] output = aiBoard.getStack().pop();
-        ChessboardPoint src = (ChessboardPoint)output[0];
-        ChessboardPoint des = (ChessboardPoint)output[1];
-        ChessPiece target = (ChessPiece)output[2];
-        ChessPiece chess = aiBoard.getChessPieceAt(des);
-        if(chess!=null&&view.getGridComponentAt(des).getPlayerColor()!=chess.getOwner()){
-            if(view.getGridComponentAt(src).getPlayerColor()!=chess.getOwner()&&view.trapCell.contains(src)){
-                chess.setRank(0);
-            }
-            else if(view.trapCell.contains(des)){
-                chess.setRank();
-            }
-        }
-        aiBoard.moveChessPiece(des,src);
-        if(target!=null){
-            aiBoard.addCount(target.getOwner().equals(PlayerColor.BLUE));
-            aiBoard.setChessPiece(des,target);
-        }
-        over = false;
-    }
-    private void onTrap(ChessboardPoint selectedPoint,ChessboardPoint point,ChessPiece chess){
-        if(view.getGridComponentAt(point).getPlayerColor()!=chess.getOwner()){
-            if(view.trapCell.contains(point)){
-                chess.setRank(0);
-            }
-            else if(view.trapCell.contains(selectedPoint)){
-                chess.setRank();
-            }
-        }
-    }
     public AIBoard transform(Chessboard model,GameController game){
         AIBoard aiBoard = new AIBoard();
+        for (Object[] objArray : game.getStack()) {
+            ChessboardPoint temp = (ChessboardPoint)objArray[0];
+            int[] src = new int[]{temp.getRow(),temp.getCol()};
+            temp = (ChessboardPoint)objArray[1];
+            int[] des = new int[]{temp.getRow(),temp.getCol()};
+            ChessPiece chessPiece = (ChessPiece) objArray[2];
+            int[] chess = null;
+            if(chessPiece!=null){
+                chess = switch (chessPiece.getName()) {
+                    case "Elephant" -> new int[]{8,8,8,2300,0};
+                    case "Lion" -> new int[]{7,7,7,1500,0};
+                    case "Tiger" -> new int[]{6,6,6,1300,0};
+                    case "Leopard" -> new int[]{5,5,5,1000,0};
+                    case "Wolf" -> new int[]{4,4,4,800,0};
+                    case "Dog"  -> new int[]{3,3,3,700,0};
+                    case "Cat" -> new int[]{2,2,2,400,0};
+                    case  "Rat"-> new int[]{1,1,1,800,0};
+                    default -> new int[]{0,0,0,0,0};
+                };
+                chess[4] = chessPiece.getOwner()==PlayerColor.RED?-1:1;
+            }
+            aiBoard.getStack().push(new int[][]{src,des,chess});
+        }
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 7; j++) {
-                ChessboardPoint point = new ChessboardPoint(i,j);
-                ChessPiece chessPiece = model.getChessPieceAt(point);
-                if(chessPiece!=null){
-                    aiBoard.setChessPiece(point,new ChessPiece(chessPiece.getOwner(),chessPiece.getName(),chessPiece.getRank()));
-                }
+                ChessPiece chess = model.getChessPieceAt(new ChessboardPoint(i,j));
+                if(chess==null) continue;
+                aiBoard.setGrid(i,j,chess);
             }
-        }
-        for (Object[] objArray : game.getStack()) {
-            aiBoard.getStack().push(objArray.clone());
         }
         return aiBoard;
     }
