@@ -170,7 +170,7 @@ public class Choosemode extends JFrame {
     private void addDiffcultButton() {
         JButton button = new JButton("困难");
         button.addActionListener((e) -> {
-            start(3,null,8);
+            start(3,null,7);
             dispose();
         });
         button.setLocation(WIDTH /2-150, HEIGHT /2+120);
