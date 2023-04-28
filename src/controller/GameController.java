@@ -38,6 +38,7 @@ public class GameController implements GameListener{
     private boolean canUndo;
     private int askUndo = 0;
     private int askType = 0;
+    private int diffculty;
     Boolean permit = false;
 
     private Object[] output = new Object[3];
@@ -49,7 +50,8 @@ public class GameController implements GameListener{
         this.mode = mode;
         this.canUndo = mode==0||mode==3;
         this.socket = mode==0?null:socket;
-        this.computer = new AI(model,this,diffculy);
+        this.computer = new AI(diffculy);
+        this.diffculty = diffculy;
         view.initiateChessComponent(model);
         if(mode==1||mode==2){
             new Thread(this::createInThread).start();
@@ -78,9 +80,6 @@ public class GameController implements GameListener{
         this.askType = askType;
     }
 
-    public ChessboardComponent getView(){
-        return view;
-    }
     public PlayerColor getCurrentPlayer(){
         return currentPlayer;
     }
@@ -153,7 +152,7 @@ public class GameController implements GameListener{
                         continue;
                     }
                     stack.push(input);
-                    concludeMove((ChessboardPoint) input[0],(ChessboardPoint) input[1],(ChessPiece) input[2],false);
+                    concludeMove((ChessboardPoint) input[0],(ChessboardPoint) input[1],(ChessPiece) input[2]);
                 }
                 System.out.println("接收对象成功！");
             } catch (IOException e) {
@@ -298,29 +297,7 @@ public class GameController implements GameListener{
             assume();
         }
     }
-//    public void AIUndo(){
-//        Object[] output = stack.pop();
-//        ChessboardPoint src = (ChessboardPoint)output[0];
-//        ChessboardPoint des = (ChessboardPoint)output[1];
-//        ChessPiece target = (ChessPiece)output[2];
-//        ChessPiece chess = model.getChessPieceAt(des);
-//        if(chess!=null&&view.getGridComponentAt(des).getPlayerColor()!=chess.getOwner()){
-//            if(view.getGridComponentAt(src).getPlayerColor()!=chess.getOwner()&&view.trapCell.contains(src)){
-//                chess.setRank(0);
-//            }
-//            else if(view.trapCell.contains(des)){
-//                chess.setRank();
-//            }
-//        }
-//        model.moveChessPiece(des,src);
-//        if(target!=null){
-//            if(target.getOwner().equals(PlayerColor.BLUE)) blueCount++;
-//            else redCount++;
-//            model.setChessPiece(des,target);
-//        }
-//        over = false;
-//    }
-    public void concludeMove(ChessboardPoint src,ChessboardPoint des,ChessPiece target,Boolean AI){
+    public void concludeMove(ChessboardPoint src,ChessboardPoint des,ChessPiece target){
         if(mode==3||mode==0)push(src,des,target);
         ChessPiece chess = model.getChessPieceAt(src);
         if(target!=null&&model.isValidCapture(view,src,des)){
@@ -331,21 +308,15 @@ public class GameController implements GameListener{
         onTrap(src,des,chess);
         view.setChessComponentAtGrid(des,view.removeChessComponentAtGrid(src));
         view.repaint();
-        if(!AI) win(des,chess);
+        win(des,chess);
         this.selectedPoint = null;
 //        System.out.println(chess+" move from "+src+" to "+des);
         swapColor();
+        if(model.getRedCount()+model.getBlueCount()<6) computer.setDifficulty(diffculty+4);
+        else if(model.getRedCount()+model.getBlueCount()<8) computer.setDifficulty(diffculty+2);
+        else if(model.getRedCount()+model.getBlueCount()<11) computer.setDifficulty(diffculty+1);
+        else computer.setDifficulty(diffculty);
     }
-//    public void AIConcludeMove(ChessboardPoint src,ChessboardPoint des,ChessPiece target){
-//        push(src,des,target);
-//        ChessPiece chess = model.getChessPieceAt(src);
-//        if(target!=null&&model.isValidCapture(view,src,des)){
-//            if(target.getOwner()==PlayerColor.RED)redCount--;
-//            else blueCount--;
-//            model.captureChessPiece(view,src,des);
-//        }else model.moveChessPiece(src, des);
-//        onTrap(src,des,chess);
-//    }
     private void onTrap(ChessboardPoint selectedPoint,ChessboardPoint point,ChessPiece chess){
         if(view.getGridComponentAt(point).getPlayerColor()!=chess.getOwner()){
             if(view.trapCell.contains(point)){
@@ -383,7 +354,7 @@ public class GameController implements GameListener{
                 push(selectedPoint,point,target);
                 assume();
             }
-            concludeMove(selectedPoint,point,target,false);
+            concludeMove(selectedPoint,point,target);
 //            if(mode==3&&!over) computer.AiTurn();
             if(mode==3) new Thread(() -> computer.AiTurn(model,this)).start();
         }
@@ -414,7 +385,7 @@ public class GameController implements GameListener{
                     push(selectedPoint,point,model.getChessPieceAt(point));
                     assume();
                 }
-                concludeMove(selectedPoint,point,target,false);
+                concludeMove(selectedPoint,point,target);
 //                if(mode==3&&!over) computer.AiTurn();
                 if(mode==3) new Thread(() -> computer.AiTurn(model,this)).start();
             }

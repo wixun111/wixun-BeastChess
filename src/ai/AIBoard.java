@@ -2,17 +2,15 @@ package ai;
 
 import model.ChessPiece;
 import model.PlayerColor;
-import java.util.Arrays;
 import java.util.Stack;
 public class AIBoard {
 
     private int redCount,blueCount;
-    private int[][][] grid = new int[9][7][5];
+    private final int[][][] grid = new int[9][7][5];
     //    name rank realRank value player
-    private int[][][] terrain = new int[9][7][2];
-    //    type{river:3 trap:1 den:2} player{red:-1 blue:1}
-    int[] empy = new int[]{0,0,0,0,0};
-    private Stack<int[][]> stack = new Stack<>();
+    private final int[][][] terrain = new int[9][7][2];
+    private final Stack<int[][]> stack = new Stack<>();
+    boolean over = false;
     public AIBoard(){
         terrain[3][1] = new int[]{3,0};
         terrain[3][2] = new int[]{3,0};
@@ -65,7 +63,6 @@ public class AIBoard {
         grid[src[0]][src[1]] = new int[]{0,0,0,0,0};
     }
     private int[] removeChessPiece(int[] point) {
-        int[] chess = getChessPieceAt(point);
         return getChessPieceAt(point);
     }
     public void moveChessPiece(int[] src,int[] des) {
@@ -166,10 +163,11 @@ public class AIBoard {
         push(src,des,target);
         int[] chess = getChessPieceAt(src);
         if(target[0]!=0&&isValidCapture(src,des)){
-            minusCount(target[4]==-1);
+            minusCount(target[4]==1);
             captureChessPiece(src,des);
         }else moveChessPiece(src,des);
         onTrap(src,des,chess);
+        win(des,chess);
     }
     public void AIUndo(){
         int[][] output = getStack().pop();
@@ -190,6 +188,7 @@ public class AIBoard {
             addCount(target[4]==1);
             setChessPiece(des,target);
         }
+        over = false;
     }
     private void onTrap(int[] src,int[] des,int[] chess){
         if(getTerrainAt(des)[1]!=chess[4]){
@@ -220,19 +219,33 @@ public class AIBoard {
                 int value = chess[3];
                 int name = chess[0];
                 boolean own = chess[4]==-1;
-//                Score += own?value:-value;
-                Score += own?value/200*i:-value/200*(8-i);
+                Score += own?value:-value;
+                Score += own?value/100*i:-value/100*(8-i);
                 if(name==6||name==7||name==1){
                 if(i<6&i>1) Score+=own?150:-150;
                 }
                 if(getTerrainAt(point)[0]==1&&getTerrainAt(point)[1]!=chess[4]) {
                 Score += own?1000:-1000;
                 }
-                else if(getTerrainAt(point)[0]==2) {
-                Score += own?10000:-10000;
+                else if(getTerrainAt(point)[0]==2&&getTerrainAt(point)[1]!=chess[4]) {
+                Score += own?60000:-30000;
                 }
             }
         }
         return Score;
+    }
+    public void win(int[]des, int[] chess) {
+        if((getTerrainAt(des)[0]==2&&getTerrainAt(des)[1]!=chess[4])|| blueCount ==0||redCount==0){
+//                System.out.printf("(red: %d    blue: %d)\n",redCount,blueCount);
+            over = true;
+        }
+    }
+    public void  setCount(int redCount,int blueCount){
+        this.blueCount = blueCount;
+        this.redCount = redCount;
+    }
+
+    public boolean isOver() {
+        return over;
     }
 }
