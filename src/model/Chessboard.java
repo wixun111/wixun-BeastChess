@@ -10,13 +10,19 @@ import java.io.Serializable;
  * The Chessboard has 9*7 cells, and each cell has a position for chess
  */
 public class Chessboard implements Serializable {
-    private static final long serialVersionUID = 2345L;
+    private static final long serialVersionUID = 245L;
     private final Cell[][] grid;
+    private int redCount,blueCount;
 
     public Chessboard(boolean isLoad) {
         this.grid = new Cell[Constant.CHESSBOARD_ROW_SIZE.getNum()][Constant.CHESSBOARD_COL_SIZE.getNum()];//19X19
         initGrid();
         if(!isLoad) initPieces();
+    }
+    public Chessboard(Cell[][] grid,int redCount,int blueCount) {
+        this.grid = grid;
+        this.redCount = redCount;
+        this.blueCount = blueCount;
     }
 
     private void initGrid() {
@@ -28,6 +34,7 @@ public class Chessboard implements Serializable {
     }
 
     public void initPieces() {
+        redCount=8;blueCount=8;
         grid[0][0].setPiece(new ChessPiece(PlayerColor.RED, "Lion",7));
         grid[0][6].setPiece(new ChessPiece(PlayerColor.RED, "Tiger",6));
         grid[1][1].setPiece(new ChessPiece(PlayerColor.RED, "Dog",3));
@@ -61,6 +68,23 @@ public class Chessboard implements Serializable {
     }
     private Cell getGridAt(ChessboardPoint point) {
         return grid[point.getRow()][point.getCol()];
+    }
+
+    public int getBlueCount() {
+        return blueCount;
+    }
+
+    public int getRedCount() {
+        return redCount;
+    }
+
+    public void addCount(Boolean flag) {
+        if(flag) blueCount++;
+        else  redCount++;
+    }
+    public void minusCount(Boolean flag) {
+        if(flag) blueCount--;
+        else  redCount--;
     }
 
     private int calculateDistance(ChessboardPoint src, ChessboardPoint dest) {
