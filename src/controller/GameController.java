@@ -13,8 +13,13 @@ import view.ChessboardComponent;
 
 import javax.swing.*;
 import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Stack;
+
+import static java.lang.Thread.sleep;
 
 /**
  * Controller is the connection between model and view,
@@ -32,17 +37,19 @@ public class GameController implements GameListener{
     private final AI computer;
     private boolean over;
     private final int mode;
-    private final Socket socket;
+    private Socket socket;
     private Stack<Object[]> stack = new Stack<>();
     private final String lock = "";
     private boolean canUndo;
+    private boolean netBreak = false;
     private int askUndo = 0;
     private int askType = 0;
-    private int diffculty;
+    private final int difficult;
+    private ServerSocket serverSocket;
     Boolean permit = false;
 
     private Object[] output = new Object[3];
-    public GameController(ChessboardComponent view, Chessboard model, int mode, Socket socket,int diffculy) throws IOException {
+    public GameController(ChessboardComponent view, Chessboard model, int mode, Socket socket,int difficulty) throws IOException {
         this.view = view;
         this.model = model;
         this.Player = mode!=2?PlayerColor.BLUE:PlayerColor.RED;
@@ -50,8 +57,8 @@ public class GameController implements GameListener{
         this.mode = mode;
         this.canUndo = mode==0||mode==3;
         this.socket = mode==0?null:socket;
-        this.computer = new AI(diffculy);
-        this.diffculty = diffculy;
+        this.computer = new AI(difficulty);
+        this.difficult = difficulty;
         view.initiateChessComponent(model);
         if(mode==1||mode==2){
             new Thread(this::createInThread).start();
@@ -78,6 +85,10 @@ public class GameController implements GameListener{
 
     public void setAskType(int askType) {
         this.askType = askType;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
     }
 
     public PlayerColor getCurrentPlayer(){
@@ -128,14 +139,14 @@ public class GameController implements GameListener{
                         }
                     }else if ((int)in == 4){//收到重开回复
                         restart(false);
-                    }else if ((int)in == 5){
+                    }else if ((int)in == 5){//收到读谱请求
                         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                         if(JOptionPane.showConfirmDialog(view.getParent(),"是否读取棋谱？","读谱请求", JOptionPane.YES_NO_OPTION)==0){
                             oos.writeObject(6);
                         }else {
                             oos.writeObject(-1);
                         }
-                    }else if ((int)in == 6){
+                    }else if ((int)in == 6){//收到读谱回复
                         permit = true;
                         restart(true);
                         permit = false;
@@ -157,7 +168,38 @@ public class GameController implements GameListener{
                 System.out.println("接收对象成功！");
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(view.getParent(),"链接中断！！！");
-                throw new RuntimeException(e);
+                netBreak = true;over = true;
+                assume();
+                try {
+                    if(mode==1){
+                        socket.close();
+                        if(serverSocket==null) serverSocket = new ServerSocket(8888);
+                        setSocket(serverSocket.accept());
+                        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                        oos.writeObject(new Object[]{currentPlayer,false,model,stack});
+                        JOptionPane.showMessageDialog(view.getParent(),"重新链接成功！！！");
+                        netBreak = false;over = false;
+                    }
+                    else {
+                        while (true){
+                            try {
+                                socket = new Socket(socket.getInetAddress().getHostName(),socket.getPort());
+                                if(!socket.isClosed()) break;
+                                sleep(5000);
+                            } catch (IOException ee) {
+                                System.out.println("连接失败！");
+                            } catch (InterruptedException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+                        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                        oos.writeObject(new Object[]{currentPlayer,false,model,stack});
+                        JOptionPane.showMessageDialog(view.getParent(),"重新链接成功！！！");
+                        netBreak = false;over = false;
+                    }
+                } catch (IOException exc) {
+                    exc.printStackTrace();
+                }
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -168,6 +210,7 @@ public class GameController implements GameListener{
             while (true){
                 try {
                     lock.wait();
+                    if(netBreak) continue;
                     ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                     if (askType==1){
                         oos.writeObject(3);
@@ -208,11 +251,26 @@ public class GameController implements GameListener{
         }
     }
     public void save() throws IOException {
-        File save = new File("save.txt");
+        String fileName = JOptionPane.showInputDialog("存档名");
+        if (fileName==null||fileName.equals("")) return;
+        System.out.println("1"+fileName+"1");
+        File save = new File("save\\" + fileName + ".txt");
+        try {
+            if(!new File("save").exists()) Files.createDirectory(Path.of("save"));
+            if(save.exists()){
+                int n = JOptionPane.showConfirmDialog(view.getParent(), "存档已存在，是否覆盖?", "", JOptionPane.YES_NO_OPTION);
+                if (n == JOptionPane.YES_OPTION) {
+                    save.delete();
+                }else return;
+            }
+        } catch (Exception ex){
+            ex.printStackTrace();
+        }
         if(!save.exists()) save.createNewFile();
-        ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("save.txt")));
+        ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(save)));
         oos.writeObject(new Object[]{currentPlayer,over,model,stack});
         oos.close();
+        JOptionPane.showMessageDialog(view.getParent(),"保存成功");
     }
     private void load() throws IOException, ClassNotFoundException {
         if(mode==1||mode==2){
@@ -222,7 +280,12 @@ public class GameController implements GameListener{
                 return;
             }
         }
-        ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream("save.txt")));
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new File("save"));
+        int state = chooser.showOpenDialog(view.getParent());
+        File file = chooser.getSelectedFile();
+        if(state==JFileChooser.CANCEL_OPTION) return;
+        ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)));
         Object[] in = (Object[]) ois.readObject();
         loadData(in);
         ois.close();
@@ -312,10 +375,10 @@ public class GameController implements GameListener{
         this.selectedPoint = null;
 //        System.out.println(chess+" move from "+src+" to "+des);
         swapColor();
-        if(model.getRedCount()+model.getBlueCount()<6) computer.setDifficulty(diffculty+4);
-        else if(model.getRedCount()+model.getBlueCount()<8) computer.setDifficulty(diffculty+2);
-        else if(model.getRedCount()+model.getBlueCount()<11) computer.setDifficulty(diffculty+1);
-        else computer.setDifficulty(diffculty);
+        if(model.getRedCount()+model.getBlueCount()<6) computer.setDifficulty(difficult +4);
+        else if(model.getRedCount()+model.getBlueCount()<8) computer.setDifficulty(difficult +2);
+        else if(model.getRedCount()+model.getBlueCount()<11) computer.setDifficulty(difficult +1);
+        else computer.setDifficulty(difficult);
     }
     private void onTrap(ChessboardPoint selectedPoint,ChessboardPoint point,ChessPiece chess){
         if(view.getGridComponentAt(point).getPlayerColor()!=chess.getOwner()){
@@ -346,16 +409,22 @@ public class GameController implements GameListener{
         view.revalidate();
         view.repaint();
     }
+    public boolean isRepeated(ChessboardPoint point){
+        if(stack.size()<8) return false;
+        ChessboardPoint Src = (ChessboardPoint)stack.get(stack.size()-4)[0];
+        ChessboardPoint Des = (ChessboardPoint)stack.get(stack.size()-4)[1];
+        return Src.equals(selectedPoint)&&Des.equals(point);
+    }
     @Override
     public void onPlayerClickCell(ChessboardPoint point, CellComponent component) throws IOException, ClassNotFoundException {
         if (!over&&selectedPoint != null && model.isValidMove(view,selectedPoint,point)) {
             ChessPiece target = model.getChessPieceAt(point);
+            if(isRepeated(point)) return;
             if(mode==1||mode==2)  {
                 push(selectedPoint,point,target);
                 assume();
             }
             concludeMove(selectedPoint,point,target);
-//            if(mode==3&&!over) computer.AiTurn();
             if(mode==3) new Thread(() -> computer.AiTurn(model,this)).start();
         }
     }
@@ -385,8 +454,8 @@ public class GameController implements GameListener{
                     push(selectedPoint,point,model.getChessPieceAt(point));
                     assume();
                 }
+                if(isRepeated(point)) return;
                 concludeMove(selectedPoint,point,target);
-//                if(mode==3&&!over) computer.AiTurn();
                 if(mode==3) new Thread(() -> computer.AiTurn(model,this)).start();
             }
             view.repaint();

@@ -1,8 +1,8 @@
 package model;
 
 public enum Constant {
-    CHESSBOARD_ROW_SIZE(9),CHESSBOARD_COL_SIZE(7);
-
+    CHESSBOARD_ROW_SIZE(9),CHESSBOARD_COL_SIZE(7),
+    NONE(0),EASY(5),NORMAL(6),DIFFICULT(7);
     private final int num;
     Constant(int num){
         this.num = num;

@@ -6,8 +6,8 @@ import java.util.Stack;
 public class AIBoard {
 
     private int redCount,blueCount;
-    private final int[][][] grid = new int[9][7][5];
-    //    name rank realRank value player
+    private final int[][][] grid = new int[9][7][4];
+    //    name rank value player
     private final int[][][] terrain = new int[9][7][2];
     private final Stack<int[][]> stack = new Stack<>();
     boolean over = false;
@@ -45,32 +45,33 @@ public class AIBoard {
     public void setGrid(int i, int j, ChessPiece chess) {
         String name = chess.getName();
         grid[i][j]=switch (name) {
-            case "Elephant" -> new int[]{8,8,8,2300,0};
-            case "Lion" -> new int[]{7,7,7,1500,0};
-            case "Tiger" -> new int[]{6,6,6,1300,0};
-            case "Leopard" -> new int[]{5,5,5,1000,0};
-            case "Wolf" -> new int[]{4,4,4,800,0};
-            case "Dog"  -> new int[]{3,3,3,700,0};
-            case "Cat" -> new int[]{2,2,2,400,0};
-            case  "Rat"-> new int[]{1,1,1,800,0};
-            default -> new int[]{0,0,0,0,0};
+            case "Elephant" -> new int[]{8,8,2300,0};
+            case "Lion" -> new int[]{7,7,1500,0};
+            case "Tiger" -> new int[]{6,6,1300,0};
+            case "Leopard" -> new int[]{5,5,1000,0};
+            case "Wolf" -> new int[]{4,4,800,0};
+            case "Dog"  -> new int[]{3,3,700,0};
+            case "Cat" -> new int[]{2,2,400,0};
+            case  "Rat"-> new int[]{1,1,800,0};
+            default -> new int[]{0,0,0,0};
         };
-        grid[i][j][4] = chess.getOwner()==PlayerColor.RED? -1:1;
+        grid[i][j][3] = chess.getOwner()==PlayerColor.RED? -1:1;
+        if(terrain[i][j][0]==1&&terrain[i][j][1]!=grid[i][j][3]) grid[i][j][1]=0;
     }
 
     public void captureChessPiece(int[] src,int[] des) {
         setChessPiece(des, removeChessPiece(src));
-        grid[src[0]][src[1]] = new int[]{0,0,0,0,0};
+        grid[src[0]][src[1]] = new int[]{0,0,0,0};
     }
     private int[] removeChessPiece(int[] point) {
         return getChessPieceAt(point);
     }
     public void moveChessPiece(int[] src,int[] des) {
         setChessPiece(des, removeChessPiece(src));
-        grid[src[0]][src[1]] = new int[]{0,0,0,0,0};
+        grid[src[0]][src[1]] = new int[]{0,0,0,0};
     }
     public void setChessPiece(int[] point,int[] chess) {
-        grid[point[0]][point[1]] = new int[]{chess[0],chess[1],chess[2],chess[3],chess[4]};
+        grid[point[0]][point[1]] = new int[]{chess[0],chess[1],chess[2],chess[3]};
     }
     public void addCount(Boolean flag) {
         if(flag) blueCount++;
@@ -84,7 +85,7 @@ public class AIBoard {
         if(getChessPieceAt(src)[0]!=0&&(getChessPieceAt(src)[0]==6||getChessPieceAt(src)[0]==7)&&calculateDistance(src,des)!=1){
             return canJump(src,des);
         }
-        if(getTerrainAt(des)[0]==2&&getTerrainAt(des)[1]==getChessPieceAt(src)[4]) return false;
+        if(getTerrainAt(des)[0]==2&&getTerrainAt(des)[1]==getChessPieceAt(src)[3]) return false;
         if(getChessPieceAt(src)[0]==0||getChessPieceAt(des)[0]!=0||(getTerrainAt(des)[0]==3&&getChessPieceAt(src)[0]!=1)) {
             return false;
         }
@@ -163,7 +164,7 @@ public class AIBoard {
         push(src,des,target);
         int[] chess = getChessPieceAt(src);
         if(target[0]!=0&&isValidCapture(src,des)){
-            minusCount(target[4]==1);
+            minusCount(target[3]==1);
             captureChessPiece(src,des);
         }else moveChessPiece(src,des);
         onTrap(src,des,chess);
@@ -175,36 +176,37 @@ public class AIBoard {
         int[] des = output[1];
         int[] target = output[2];
         int[] chess = getChessPieceAt(des);
-        if(getTerrainAt(des)[1]!=chess[4]){
-            if(getTerrainAt(src)[1]!=chess[4]&&getTerrainAt(src)[0]==1){
+        if(getTerrainAt(des)[1]!=chess[3]){
+            if(getTerrainAt(src)[1]!=chess[3]&&getTerrainAt(src)[0]==1){
                 chess[1]=0;
             }
             else if(getTerrainAt(des)[0]==1){
-                chess[1]=chess[2];
+                chess[1]=chess[0];
             }
         }
         moveChessPiece(des,src);
         if(target[0]!=0){
-            addCount(target[4]==1);
+            addCount(target[3]==1);
             setChessPiece(des,target);
         }
         over = false;
     }
     private void onTrap(int[] src,int[] des,int[] chess){
-        if(getTerrainAt(des)[1]!=chess[4]){
+        if(getTerrainAt(des)[1]!=chess[3]){
             if(getTerrainAt(des)[0]==1){
                 chess[1]=0;
             }
             else if(getTerrainAt(src)[0]==1){
-                chess[1]=chess[2];
+                chess[1]=chess[0];
             }
         }
     }
     public boolean canCapture(int[] chess,int[] target) {
-        if(chess[4]!=target[4]){
+        if(chess[3]!=target[3]){
             if(target[1]==8&&chess[1]==1){
                 return true;
             }
+
             return target[1] <= chess[1] && !(chess[1] == 8 && target[1] == 1);
         }
         return false;
@@ -216,18 +218,18 @@ public class AIBoard {
                 int[] point = new int[]{i,j};
                 int[] chess = getChessPieceAt(point);
                 if(chess[0] == 0) continue;
-                int value = chess[3];
+                int value = chess[2];
                 int name = chess[0];
-                boolean own = chess[4]==-1;
+                boolean own = chess[3]==-1;
                 Score += own?value:-value;
                 Score += own?value/100*i:-value/100*(8-i);
                 if(name==6||name==7||name==1){
                 if(i<6&i>1) Score+=own?150:-150;
                 }
-                if(getTerrainAt(point)[0]==1&&getTerrainAt(point)[1]!=chess[4]) {
+                if(getTerrainAt(point)[0]==1&&getTerrainAt(point)[1]!=chess[3]) {
                 Score += own?1000:-1000;
                 }
-                else if(getTerrainAt(point)[0]==2&&getTerrainAt(point)[1]!=chess[4]) {
+                else if(getTerrainAt(point)[0]==2&&getTerrainAt(point)[1]!=chess[3]) {
                 Score += own?60000:-30000;
                 }
             }
@@ -235,7 +237,7 @@ public class AIBoard {
         return Score;
     }
     public void win(int[]des, int[] chess) {
-        if((getTerrainAt(des)[0]==2&&getTerrainAt(des)[1]!=chess[4])|| blueCount ==0||redCount==0){
+        if((getTerrainAt(des)[0]==2&&getTerrainAt(des)[1]!=chess[3])|| blueCount ==0||redCount==0){
 //                System.out.printf("(red: %d    blue: %d)\n",redCount,blueCount);
             over = true;
         }

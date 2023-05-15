@@ -139,7 +139,7 @@ public class ChessboardComponent extends JComponent implements Serializable {
         return (ChessComponent) getGridComponentAt(point).getComponents()[0];
     }
     private ChessboardPoint getChessboardPoint(Point point) {
-        System.out.println("[" + point.y/CHESS_SIZE +  ", " +point.x/CHESS_SIZE + "] Clicked");
+//        System.out.println("[" + point.y/CHESS_SIZE +  ", " +point.x/CHESS_SIZE + "] Clicked");
         return new ChessboardPoint(point.y/CHESS_SIZE, point.x/CHESS_SIZE);
     }
     private Point calculatePoint(int row, int col) {
@@ -152,18 +152,6 @@ public class ChessboardComponent extends JComponent implements Serializable {
         super.paintComponent(g);
         g.setColor(Color.yellow);
         ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//        for (int i = 0; i < 9; i++) {
-//            for (int j = 0; j < 9; j++) {
-//                if(j<3) {
-//                    g.setColor(Color.RED);
-//                    g.drawRect(i*CHESS_SIZE ,j*CHESS_SIZE ,CHESS_SIZE,CHESS_SIZE);
-//                }
-//                else if(j>5){
-//                    g.setColor(Color.CYAN);
-//                    g.drawRect(i*CHESS_SIZE ,j*CHESS_SIZE ,CHESS_SIZE,CHESS_SIZE);
-//                }
-//            }
-//        }
     }
 
     @Override
@@ -171,16 +159,16 @@ public class ChessboardComponent extends JComponent implements Serializable {
         if (e.getID() == MouseEvent.MOUSE_PRESSED) {
             JComponent clickedComponent = (JComponent) getComponentAt(e.getX(), e.getY());
             if (clickedComponent.getComponentCount() == 0) {
-                System.out.print("None chess here and ");
+//                System.out.print("None chess here and ");
                 try {
                     gameController.onPlayerClickCell(getChessboardPoint(e.getPoint()), (CellComponent) clickedComponent);
                 } catch (IOException | ClassNotFoundException ex) {
                     throw new RuntimeException(ex);
                 }
             } else {
-                System.out.print("One chess here and ");
+//                System.out.print("One chess here and ");
                 ChessPiece chessPiece = gameController.getModel().getChessPieceAt(getChessboardPoint(e.getPoint()));
-                System.out.print("Piece:"+chessPiece+"  Rank:" + chessPiece.getRank()+"\n");
+//                System.out.print("Piece:"+chessPiece+"  Rank:" + chessPiece.getRank()+"\n");
                 gameController.onPlayerClickChessPiece(getChessboardPoint(e.getPoint()), (ChessComponent) clickedComponent.getComponents()[0]);
             }
         }

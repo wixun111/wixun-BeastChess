@@ -33,20 +33,32 @@ public class AI {
 
     public void AiTurn(Chessboard model, GameController game){
         maxAtomic.set(-INF);
+        if(game.isOver()) return;
         int[] dirx ={1,0,0,-1};int[] diry = {0,1,-1,0};
         long current1=System.currentTimeMillis();
         AIBoard aiBoard = transform(model,game);
-        ExecutorService executor = Executors.newFixedThreadPool(12);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 7; j++) {
                 int[] src = new int[]{i,j};
                 int[] chess = aiBoard.getChessPieceAt(src);
-                if (chess[0] == 0 || chess[4] == 1) continue;
+                if (chess[0] == 0 || chess[3] == 1) continue;
                 for (int k = 0; k < 4; k++) {
                     int finalI = i;
                     int finalJ = j;
                     int finalK = k;
                     if (finalI + dirx[finalK] < 0 || finalI + dirx[finalK] > 8 || finalJ + diry[finalK] < 0 || finalJ + diry[finalK] > 6) continue;
+                    if (game.getStack().size()>6){
+                        ChessboardPoint finalSrc = (ChessboardPoint)game.getStack().get(game.getStack().size()-4)[0];
+                        ChessboardPoint finalDes = (ChessboardPoint)game.getStack().get(game.getStack().size()-4)[1];
+//                        System.out.printf("(%d %d)\n",finalSrc.getRow()+1,finalSrc.getCol()+1);
+//                        System.out.printf("(%d %d)\n",finalDes.getRow()+1,finalDes.getCol()+1);
+//                        System.out.printf("(%d %d)\n",i+1,j+1);
+//                        System.out.printf("(%d %d)\n\n",i+dirx[k]+1,j+diry[k]+1);
+                        if(finalSrc.getRow()==finalI&&finalSrc.getCol()==finalJ&&finalDes.getRow()==finalI+dirx[finalK]&&finalDes.getCol()==finalJ+diry[finalK]){
+                            continue;
+                        }
+                    }
                     AIBoard finalAiBoard = transform(model,game);
                     int[] finalChess = finalAiBoard.getChessPieceAt(src);
                     executor.submit(() -> {
@@ -64,7 +76,7 @@ public class AI {
 //                            for (int n = 0; n < 7; n++) {
 //                                int[] point = new int[]{m,n};
 //                                int[] chess1 = finalAiBoard.getChessPieceAt(point);
-//                                System.out.printf("%2d",chess1[0]*chess1[4]);
+//                                System.out.printf("%2d",chess1[0]*chess1[3]);
 //                            }
 //                            System.out.println();
 //                        }
@@ -98,7 +110,7 @@ public class AI {
         System.out.printf("The running time is %.3f second\n",(current2-current1)/1000.0d);
     }
     private int alphabeta(int player,int alpha,int beta, int depth,AIBoard aiBoard){
-        if(depth == difficulty||aiBoard.isOver()){
+        if(depth == 7||aiBoard.isOver()){
             return aiBoard.getScore();
         }
         if(alpha>20000&&player==-1) return alpha;
@@ -109,7 +121,7 @@ public class AI {
             for (int j = 0; j < 7; j++) {
                 int[] src = new int[]{i,j};
                 int[] chess = aiBoard.getChessPieceAt(src);
-                if(chess[0]==0||chess[4]!=player) continue;
+                if(chess[0]==0||chess[3]!=player) continue;
                 for (int k = 0; k < 4; k++) {
                     if(i+dirx[k]<0||i+dirx[k]>8||j+diry[k]<0||j+diry[k]>6) continue;
                     int[] des = new int[]{i+dirx[k],j+diry[k]};
@@ -122,18 +134,22 @@ public class AI {
                         aiBoard.AIConcludeMove(src, des, target);
                     }else if(!aiBoard.isValidMove(src,des)&&!aiBoard.isValidCapture(src,des)) continue;
                     else aiBoard.AIConcludeMove(src, des, target);
-//                    for (int m = 0; m < 9; m++) {
-//                        for (int n = 0; n < 7; n++) {
-//                            int[] point = new int[]{m,n};
-//                            int[] chess1 = aiBoard.getChessPieceAt(point);
-//                            System.out.printf("%2d",chess1[0]*chess1[4]);
+//                    if(depth<=2){
+//                        for (int m = 0; m < 9; m++) {
+//                            for (int n = 0; n < 7; n++) {
+//                                int[] point = new int[]{m,n};
+//                                int[] chess1 = aiBoard.getChessPieceAt(point);
+//                                System.out.printf("%2d",chess1[1]*chess1[3]);
+//                            }
+//                            System.out.println();
 //                        }
 //                        System.out.println();
 //                    }
-//                    System.out.println();
                     int temp = alphabeta(-1*player,alpha,beta,depth+1,aiBoard);
-//                    System.out.println("depth:"+depth+"   score:"+temp);
-//                    System.out.println();
+//                    if(depth<=2) {
+//                        System.out.println("depth:" + depth + "   score:" + temp);
+//                        System.out.println();
+//                    }
                     aiBoard.AIUndo();
                     beta = Math.min(beta,temp);
                     if(beta <= alpha){
@@ -147,7 +163,7 @@ public class AI {
                 for (int j = 6; j >=0; j--) {
                     int[] src = new int[]{i,j};
                     int[] chess = aiBoard.getChessPieceAt(src);
-                    if(chess[0]==0||chess[4]!=player) continue;
+                    if(chess[0]==0||chess[3]!=player) continue;
                     for (int k = 0; k < 4; k++) {
                         if(i+dirx[k]<0||i+dirx[k]>8||j+diry[k]<0||j+diry[k]>6) continue;
                         int[] des = new int[]{i+dirx[k],j+diry[k]};
@@ -160,18 +176,22 @@ public class AI {
                             aiBoard.AIConcludeMove(src, des, target);
                         }else if(!aiBoard.isValidMove(src,des)&&!aiBoard.isValidCapture(src,des)) continue;
                         else aiBoard.AIConcludeMove(src, des, target);
-//                    for (int m = 0; m < 9; m++) {
-//                        for (int n = 0; n < 7; n++) {
-//                            int[] point = new int[]{m,n};
-//                            int[] chess1 = aiBoard.getChessPieceAt(point);
-//                            System.out.printf("%2d",chess1[0]*chess1[4]);
+//                        if(depth<=2){
+//                            for (int m = 0; m < 9; m++) {
+//                                for (int n = 0; n < 7; n++) {
+//                                    int[] point = new int[]{m,n};
+//                                    int[] chess1 = aiBoard.getChessPieceAt(point);
+//                                    System.out.printf("%2d",chess1[1]*chess1[3]);
+//                                }
+//                                System.out.println();
+//                            }
+//                            System.out.println();
 //                        }
-//                        System.out.println();
-//                    }
-//                    System.out.println();
                         int temp = alphabeta(-1*player,alpha,beta,depth+1,aiBoard);
-//                    System.out.println("depth:"+depth+"   score:"+temp);
-//                    System.out.println();
+//                        if(depth<=2) {
+//                            System.out.println("depth:" + depth + "   score:" + temp);
+//                            System.out.println();
+//                        }
                         aiBoard.AIUndo();
                         alpha = Math.max(alpha,temp);
                         if(beta <= alpha){
@@ -196,17 +216,17 @@ public class AI {
             int[] chess = null;
             if(chessPiece!=null){
                 chess = switch (chessPiece.getName()) {
-                    case "Elephant" -> new int[]{8,8,8,2300,0};
-                    case "Lion" -> new int[]{7,7,7,1500,0};
-                    case "Tiger" -> new int[]{6,6,6,1300,0};
-                    case "Leopard" -> new int[]{5,5,5,1000,0};
-                    case "Wolf" -> new int[]{4,4,4,800,0};
-                    case "Dog"  -> new int[]{3,3,3,700,0};
-                    case "Cat" -> new int[]{2,2,2,400,0};
-                    case  "Rat"-> new int[]{1,1,1,800,0};
-                    default -> new int[]{0,0,0,0,0};
+                    case "Elephant" -> new int[]{8,8,2300,0};
+                    case "Lion" -> new int[]{7,7,1500,0};
+                    case "Tiger" -> new int[]{6,6,1300,0};
+                    case "Leopard" -> new int[]{5,5,1000,0};
+                    case "Wolf" -> new int[]{4,4,800,0};
+                    case "Dog"  -> new int[]{3,3,700,0};
+                    case "Cat" -> new int[]{2,2,400,0};
+                    case  "Rat"-> new int[]{1,1,800,0};
+                    default -> new int[]{0,0,0,0};
                 };
-                chess[4] = chessPiece.getOwner()==PlayerColor.RED?-1:1;
+                chess[3] = chessPiece.getOwner()==PlayerColor.RED?-1:1;
             }
             aiBoard.getStack().push(new int[][]{src,des,chess});
         }
@@ -215,7 +235,7 @@ public class AI {
                 ChessPiece chess = model.getChessPieceAt(new ChessboardPoint(i,j));
                 if(chess==null) continue;
                 aiBoard.setGrid(i,j,chess);
-                if(aiBoard.getChessPieceAt(new int[]{i,j})[4]==1)blueCount++;
+                if(aiBoard.getChessPieceAt(new int[]{i,j})[3]==1)blueCount++;
                 else redCount++;
                 aiBoard.setCount(redCount,blueCount);
             }

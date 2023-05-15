@@ -128,7 +128,6 @@ public class ChessGameFrame extends JFrame {
         button.addActionListener((e) -> {
             try {
                 game.save();
-                JOptionPane.showMessageDialog(this,"保存成功");
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

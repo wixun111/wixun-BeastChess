@@ -2,7 +2,7 @@ package view;
 import Net.Client;
 import Net.Server;
 import controller.GameController;
-import model.Chessboard;
+import model.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,12 +12,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class Choosemode extends JFrame {
+public class ChooseMode extends JFrame {
     private final int WIDTH;
     private final int HEIGHT;
 
     private Socket accept;
-    public Choosemode(int width, int height){
+    public ChooseMode(int width, int height){
         this.HEIGHT = height;
         this.WIDTH = width;
         setSize(width,height);
@@ -148,7 +148,7 @@ public class Choosemode extends JFrame {
     private void addSimpleButton() {
         JButton button = new JButton("简单");
         button.addActionListener((e) -> {
-            start(3,null,4);
+            start(3,null,Constant.EASY.getNum());
             dispose();
         });
         button.setLocation(WIDTH /2-150, HEIGHT /2-120);
@@ -159,7 +159,7 @@ public class Choosemode extends JFrame {
     private void addNormalButton() {
         JButton button = new JButton("普通");
         button.addActionListener((e) -> {
-            start(3,null,6);
+            start(3,null,Constant.NORMAL.getNum());
             dispose();
         });
         button.setLocation(WIDTH /2-150, HEIGHT /2);
@@ -170,7 +170,7 @@ public class Choosemode extends JFrame {
     private void addDiffcultButton() {
         JButton button = new JButton("困难");
         button.addActionListener((e) -> {
-            start(3,null,7);
+            start(3,null,Constant.DIFFICULT.getNum());
             dispose();
         });
         button.setLocation(WIDTH /2-150, HEIGHT /2+120);

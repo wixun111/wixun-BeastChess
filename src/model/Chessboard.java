@@ -165,27 +165,4 @@ public class Chessboard implements Serializable {
         }
         return !view.riverCell.contains(des)&&(src.getRow()==des.getRow()||src.getCol()==des.getCol());
     }
-    public ChessboardPoint Jump(ChessboardComponent view,ChessboardPoint src, ChessboardPoint des){
-        if(src.getRow()==des.getRow()){
-            int row = des.getRow();
-            int col = des.getCol();
-            int dir = des.getCol()-src.getCol();
-            for (int i = col; i != col+2*dir; i+=dir) {
-                ChessboardPoint temp = new ChessboardPoint(row,i);
-                if(getChessPieceAt(temp) != null) return null;
-            }
-            return new ChessboardPoint(row,col+2*dir);
-        }
-        else if(src.getCol()==des.getCol()){
-            int row = des.getRow();
-            int col = des.getCol();
-            int dir = des.getRow()-src.getRow();
-            for (int i = row; i != row+3*dir; i+=dir) {
-                ChessboardPoint temp = new ChessboardPoint(i,col);
-                if(getChessPieceAt(temp) != null) return null;
-            }
-            return new ChessboardPoint(row+3*dir,col);
-        }
-        return null;
-    }
 }
