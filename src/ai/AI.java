@@ -11,6 +11,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.Thread.sleep;
+
 
 public class AI {
 
@@ -22,6 +24,7 @@ public class AI {
     AtomicInteger colAtomic = new AtomicInteger();
     AtomicInteger xAtomic = new AtomicInteger();
     AtomicInteger yAtomic = new AtomicInteger();
+    int player = 0;
 
     public AI(int difficulty){
         this.difficulty = difficulty;
@@ -34,15 +37,17 @@ public class AI {
     public void AiTurn(Chessboard model, GameController game){
         maxAtomic.set(-INF);
         if(game.isOver()) return;
+        if(game.getCurrentPlayer()==PlayerColor.RED) player = -1;
+        else player = 1;
         int[] dirx ={1,0,0,-1};int[] diry = {0,1,-1,0};
         long current1=System.currentTimeMillis();
         AIBoard aiBoard = transform(model,game);
-        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ExecutorService executor = Executors.newFixedThreadPool(12);
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 7; j++) {
                 int[] src = new int[]{i,j};
                 int[] chess = aiBoard.getChessPieceAt(src);
-                if (chess[0] == 0 || chess[3] == 1) continue;
+                if (chess[0] == 0 || chess[3] != player) continue;
                 for (int k = 0; k < 4; k++) {
                     int finalI = i;
                     int finalJ = j;
@@ -81,7 +86,7 @@ public class AI {
 //                            System.out.println();
 //                        }
 //                        System.out.println();
-                        int temp = alphabeta(1, -INF, INF, 1,finalAiBoard);
+                        int temp = alphabeta(player*-1, -INF, INF, 1,finalAiBoard);
 //                        System.out.println("depth:"+0+"   score:"+temp);
                         finalAiBoard.AIUndo();
                         if(temp>maxAtomic.get()){
@@ -98,10 +103,11 @@ public class AI {
         executor.shutdown();
         try {
             executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            if(game.getMode()==3) sleep(1000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        if(game.getCurrentPlayer()!=PlayerColor.RED) return;
+        if(game.getCurrentPlayer()!=PlayerColor.RED&&game.getMode()==3) return;
         ChessboardPoint src = new ChessboardPoint(rowAtomic.get(), colAtomic.get());
         ChessboardPoint des = new ChessboardPoint(xAtomic.get(), yAtomic.get());
         game.concludeMove(src, des, model.getChessPieceAt(des));
@@ -110,11 +116,10 @@ public class AI {
         System.out.printf("The running time is %.3f second\n",(current2-current1)/1000.0d);
     }
     private int alphabeta(int player,int alpha,int beta, int depth,AIBoard aiBoard){
-        if(depth == 7||aiBoard.isOver()){
-            return aiBoard.getScore();
+        if(depth == difficulty||aiBoard.isOver()){
+            return aiBoard.getScore(this.player);
         }
         if(alpha>20000&&player==-1) return alpha;
-        if(beta<-10000) return beta;
         int[] dirx ={1,0,0,-1};int[] diry = {0,1,-1,0};
         if(player==1)
         for (int i = 0; i < 9; i++) {

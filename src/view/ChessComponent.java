@@ -6,6 +6,7 @@ import model.PlayerColor;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
  * This is the equivalent of the ChessPiece class,
@@ -38,23 +39,30 @@ public class ChessComponent extends JComponent {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        Font font = new Font("楷体", Font.PLAIN, getWidth() / 2);
-        g2.setFont(font);
-        g2.setColor(owner.getColor());
-        switch (piece.getName()) {
-            case "Elephant" -> g2.drawString("象", getWidth() / 4, getHeight() * 5 / 8 + 4);
-            case "Lion" -> g2.drawString("狮", getWidth() / 4, getHeight() * 5 / 8 + 4);
-            case "Tiger" -> g2.drawString("虎", getWidth() / 4, getHeight() * 5 / 8 + 4);
-            case "Leopard" -> g2.drawString("豹", getWidth() / 4, getHeight() * 5 / 8 + 4);
-            case "Wolf" -> g2.drawString("狼", getWidth() / 4, getHeight() * 5 / 8 + 4);
-            case "Dog" -> g2.drawString("狗", getWidth() / 4, getHeight() * 5 / 8 + 4);
-            case "Cat" -> g2.drawString("猫", getWidth() / 4, getHeight() * 5 / 8 + 4);
-            case "Rat" -> g2.drawString("鼠", getWidth() / 4, getHeight() * 5 / 8 + 4);
-        }
-        if (isSelected()) { // Highlights the model if selected.
-            g.drawOval(5, 5, getWidth()-10, getHeight()-10);
+        if(piece.getOwner()==PlayerColor.RED)
+            switch (piece.getName()) {
+                case "Elephant" -> g.drawImage(new ImageIcon("resource\\Picture\\Elephant.png").getImage(), 0,-5, getWidth(), getHeight(), null);
+                case "Lion" -> g.drawImage(new ImageIcon("resource\\Picture\\Lion.png").getImage(), 2, -5, getWidth(), getHeight(), null);
+                case "Tiger" -> g.drawImage(new ImageIcon("resource\\Picture\\Tiger.png").getImage(), 2, -5, getWidth(), getHeight(), null);
+                case "Leopard" -> g.drawImage(new ImageIcon("resource\\Picture\\Leopard.png").getImage(), 2, -5, getWidth(), getHeight(), null);
+                case "Wolf" -> g.drawImage(new ImageIcon("resource\\Picture\\Wolf.png").getImage(), 0, -5, getWidth(), getHeight(), null);
+                case "Dog" -> g.drawImage(new ImageIcon("resource\\Picture\\Dog.png").getImage(), 1, -5, getWidth(), getHeight(), null);
+                case "Cat" -> g.drawImage(new ImageIcon("resource\\Picture\\Cat.png").getImage(), 2, -5, getWidth(), getHeight(), null);
+                case "Rat" -> g.drawImage(new ImageIcon("resource\\Picture\\Rat.png").getImage(), -2, -13, getWidth(), getHeight(), null);
+            }
+        else
+            switch (piece.getName()) {
+                case "Elephant" -> g.drawImage(new ImageIcon("resource\\Picture\\Elephant B.png").getImage(), 0, 0, getWidth(), getHeight(), null);
+                case "Lion" -> g.drawImage(new ImageIcon("resource\\Picture\\Lion B.png").getImage(), 0, 0, getWidth(), getHeight(), null);
+                case "Tiger" -> g.drawImage(new ImageIcon("resource\\Picture\\Tiger B.png").getImage(), 0, 0, getWidth(), getHeight(), null);
+                case "Leopard" -> g.drawImage(new ImageIcon("resource\\Picture\\Leopard B.png").getImage(), 0, 0, getWidth(), getHeight(), null);
+                case "Wolf" -> g.drawImage(new ImageIcon("resource\\Picture\\Wolf B.png").getImage(), 0, 0, getWidth(), getHeight(), null);
+                case "Dog" -> g.drawImage(new ImageIcon("resource\\Picture\\Dog B.png").getImage(), 0, -8, getWidth(), getHeight(), null);
+                case "Cat" -> g.drawImage(new ImageIcon("resource\\Picture\\Cat B.png").getImage(), 2, -9, getWidth(), getHeight(), null);
+                case "Rat" -> g.drawImage(new ImageIcon("resource\\Picture\\Rat B.png").getImage(), 3, -15, getWidth(), getHeight(), null);
+            }
+        if(selected){
+            g.drawImage(new ImageIcon("resource\\Picture\\Selected.png").getImage(), 0, 0, getWidth(), getHeight(), null);
         }
     }
     @Override

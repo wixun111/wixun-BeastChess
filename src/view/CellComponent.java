@@ -11,14 +11,14 @@ import java.awt.*;
  */
 
 public class CellComponent extends JPanel {
-    private final Color background;
+    private final Image image;
     private final PlayerColor playerColor;
 
-    public CellComponent(Color background, Point location, int size,PlayerColor playerColor) {
+    public CellComponent(Image background, Point location, int size,PlayerColor playerColor) {
         setLayout(new GridLayout(1,1));
         setLocation(location);
         setSize(size, size);
-        this.background = background;
+        this.image = background;
         this.playerColor = playerColor;
     }
 
@@ -29,7 +29,8 @@ public class CellComponent extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponents(g);
-        g.setColor(background);
-        g.fillRect(1, 1, this.getWidth()-1, this.getHeight()-1);
+        if (image != null) {
+            g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
+        }
     }
 }

@@ -211,7 +211,7 @@ public class AIBoard {
         }
         return false;
     }
-    public int getScore(){
+    public int getScore(int Player){
         int Score = 0;
         for (int i = 0; i <9; i++) {
             for (int j = 0; j < 7; j++) {
@@ -220,9 +220,9 @@ public class AIBoard {
                 if(chess[0] == 0) continue;
                 int value = chess[2];
                 int name = chess[0];
-                boolean own = chess[3]==-1;
+                boolean own = chess[3] == Player;
                 Score += own?value:-value;
-                Score += own?value/100*i:-value/100*(8-i);
+                Score += own?value/100*i:value/100*(8-i);
                 if(name==6||name==7||name==1){
                 if(i<6&i>1) Score+=own?150:-150;
                 }
