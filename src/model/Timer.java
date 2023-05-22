@@ -6,7 +6,7 @@ import javax.swing.*;
 
 public class Timer extends Thread{
     private int time = 5;
-    private GameController game;
+    private final GameController game;
     private JLabel timeLabel;
     private boolean pause;
     @Override
@@ -15,7 +15,7 @@ public class Timer extends Thread{
             PlayerColor player = game.getCurrentPlayer();
             while(true) {
                 try {
-                    sleep(1000);
+                    sleep(10);
                     if(time==0){
                         if(game.getMode()==3&&game.getCurrentPlayer()==PlayerColor.RED) break;
                         if((game.getMode()==1&&game.getCurrentPlayer()==PlayerColor.RED)||(game.getMode()==2&&game.getCurrentPlayer()==PlayerColor.BLUE)) {

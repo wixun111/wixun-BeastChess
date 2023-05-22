@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class LoginFrame extends JFrame {
-    private ChooseFrame chooseMode;
-    private ArrayList<User> users;
+    private ChooseFrame chooseFrame;
+    private final ArrayList<User> users;
     private JTextField Account;
     private JPasswordField Password;
     public LoginFrame(ChooseFrame chooseMode){
@@ -20,7 +20,7 @@ public class LoginFrame extends JFrame {
         setLayout(null);
         setVisible(true);
         this.users = chooseMode.users;
-        this.chooseMode = chooseMode;
+        this.chooseFrame = chooseMode;
         JLabel lbAccount = new JLabel("账户");
         lbAccount.setFont(new Font("", Font.BOLD, 20));
         lbAccount.setBounds(55, 30, 50, 40);
@@ -74,8 +74,8 @@ public class LoginFrame extends JFrame {
             if (pw.equals(password.get(ac))){
                 setVisible(false);
                 this.setVisible(false);
-                chooseMode.isLogin = true;
-                chooseMode.user = user.get(ac);
+                chooseFrame.user = user.get(ac);
+                chooseFrame.login();
             } else {
                 JOptionPane.showMessageDialog(null, "密码错误!", "错误", JOptionPane.ERROR_MESSAGE);
             }

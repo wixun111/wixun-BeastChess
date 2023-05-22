@@ -18,20 +18,34 @@ public class ChooseFrame extends JFrame {
     protected ArrayList<User> users = new ArrayList<>();
     private final int WIDTH;
     private final int HEIGHT;
+    private int stage;
     private boolean isPlay;
-    protected boolean isLogin;
-
+    private StartFrame startFrame;
     private Socket accept;
     protected Font pixel;
-    private JLabel background;
     protected User user;
-    private JLayeredPane layeredPane;
+    private Server server;
+    private final JLayeredPane layeredPane;
     private ChessGameFrame mainFrame;
     private GameController gameController;
     private ServerSocket serverSocket;
+    private JButton NetButton;
+    private JButton MultiPlayerButton;
+    private JButton SinglePlayerButton;
+    private JButton ServerButton;
+    private JButton ClientButton;
+    private JButton ObserverButton;
+    private JButton LoginButton;
+    private JButton RegisterButton;
+    private JButton RankButton;
+    private JButton SimpleButton;
+    private JButton NormalButton;
+    private JButton DifficultButton;
+    private JButton BackButton;
 
-
-    public ChooseFrame(int width, int height){
+    public ChooseFrame(int width, int height, StartFrame startFrame){
+        this.startFrame = startFrame;
+        this.stage = 0;
         this.layeredPane = new JLayeredPane();
         this.setContentPane(layeredPane);
         this.HEIGHT = height;
@@ -47,151 +61,79 @@ public class ChooseFrame extends JFrame {
         } catch (FontFormatException | IOException e) {
             throw new RuntimeException(e);
         }
-        addNetButton();
-        addSinglePlayerButton();
-        addMultiPlayerButton();
-        addTitleLabel();
-
-        Image image = new ImageIcon("resource/Picture/ChooseMode bg.jpeg").getImage();
-        image = image.getScaledInstance(700, 600,Image.SCALE_DEFAULT);
+        Image image = new ImageIcon("resource/Picture/chooseMode bg.jpeg").getImage();
+        image = image.getScaledInstance(700, 750,Image.SCALE_DEFAULT);
         ImageIcon icon = new ImageIcon(image);
-        background = new JLabel(icon);
-        background.setSize(700, 600);
+        JLabel background = new JLabel(icon);
+        background.setSize(700, 750);
         background.setLocation(0, 0);
         background.setLayout(null);
+        addButton();
         layeredPane.add(background,JLayeredPane.DEFAULT_LAYER);
+        layeredPane.add(NetButton, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(MultiPlayerButton, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(SinglePlayerButton, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(BackButton, JLayeredPane.PALETTE_LAYER);
     }
     public Font getPixel(int style, int size){
         return pixel.deriveFont(style,size);
     }
-    private void addRegisterButton() {
-        JButton button = new JButton("注册");
-        button.addActionListener((e) -> {
-            new RegisterFrame(this);
-        });
-        button.setLocation(WIDTH /2-150, HEIGHT /2);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
-    }
-    private void addLoginButton() {
-        JButton button = new JButton("登录");
-        button.addActionListener((e) -> {
-            if(isLogin){
-                remove(getContentPane().getComponent(0));
-                remove(getContentPane().getComponent(0));
-                remove(getContentPane().getComponent(0));
-                remove(getContentPane().getComponent(0));
-                invalidate();
-                addSimpleButton();
-                addNormalButton();
-                addDifficultButton();
-                repaint();
-            }else {
-                new LoginFrame(this);
-            }
-        });
-        button.setLocation(WIDTH /2-150, HEIGHT /2-120);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
-    }
-    private void addRankButton() {
-        JButton button = new JButton("排行榜");
-        button.addActionListener((e) -> {
-            Collections.sort(users);
-            String rank = "排名             名称                分数\n";
-            for (int i = 0; i < users.size(); i++){
-//                rank += String.format("%-10s %-10s %-10s\n", "Alice", "32", "85");
-                String temp = "";
-                for (int j = 0; j < 10-users.get(i).getName().length(); j++) {
-                    temp += " ";
-                }
-                rank += String.format("   %-18d %-15s" + temp + "%-10d \n",i+1,users.get(i).getName(),users.get(i).getScore());
-            }
-            JOptionPane.showMessageDialog(null, rank, "排行榜",JOptionPane.INFORMATION_MESSAGE);
-        });
-        button.setLocation(WIDTH /2-150, HEIGHT /2+120);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
-    }
     private void addNetButton() {
         JButton button = new JButton("联网模式");
         button.addActionListener((e) -> {
-            remove(getContentPane().getComponent(0));
-            remove(getContentPane().getComponent(0));
-            remove(getContentPane().getComponent(0));
+            stage = 1;
+            layeredPane.remove(NetButton);
+            layeredPane.remove(MultiPlayerButton);
+            layeredPane.remove(SinglePlayerButton);
+            layeredPane.add(ServerButton, JLayeredPane.PALETTE_LAYER);
+            layeredPane.add(ClientButton, JLayeredPane.PALETTE_LAYER);
+            layeredPane.add(ObserverButton, JLayeredPane.PALETTE_LAYER);
             invalidate();
-            addClientButton();
-            addServerButton();
-            addObserverButton();
             repaint();
         });
-        button.setLocation(WIDTH /2-150, HEIGHT /2-120);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,240,150);
+        NetButton = button;
     }
+
     private void addMultiPlayerButton() {
         JButton button = new JButton("双人模式");
         button.addActionListener((e) -> {
             start(0,null,2);
             setVisible(false);
         });
-        button.setLocation(WIDTH /2-150, HEIGHT /2);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,240,250);
+        MultiPlayerButton = button;
     }
     private void addSinglePlayerButton() {
         JButton button = new JButton("单机模式");
         button.addActionListener((e) -> {
-            remove(getContentPane().getComponent(0));
-            remove(getContentPane().getComponent(0));
-            remove(getContentPane().getComponent(0));
+            stage = 2;
+            layeredPane.remove(NetButton);
+            layeredPane.remove(MultiPlayerButton);
+            layeredPane.remove(SinglePlayerButton);
+            layeredPane.add(LoginButton, JLayeredPane.PALETTE_LAYER);
+            layeredPane.add(RegisterButton, JLayeredPane.PALETTE_LAYER);
+            layeredPane.add(RankButton, JLayeredPane.PALETTE_LAYER);
             invalidate();
-            addLoginButton();
-            addRegisterButton();
-            addRankButton();
             repaint();
         });
-        button.setLocation(WIDTH /2-150, HEIGHT /2+120);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,240,350);
+        SinglePlayerButton = button;
     }
     private void addServerButton() {
         JButton button = new JButton("创建主机");
         button.addActionListener((e) -> {
-            Server server = new Server(8888);
-            remove(getContentPane().getComponent(0));
-            remove(getContentPane().getComponent(0));
-            remove(getContentPane().getComponent(0));
-            remove(getContentPane().getComponent(0));
+            server = new Server();
+            layeredPane.remove(ServerButton);
+            layeredPane.remove(ClientButton);
+            layeredPane.remove(ObserverButton);
+            layeredPane.remove(BackButton);
             addLabel();
             repaint();
             try {
-                serverSocket = new ServerSocket(8888);
-                //JOptionPane.showMessageDialog(this, "你的主机地址："+InetAddress.getLocalHost().getHostAddress()+"\n你的端口号： "+server.getPort());
+                serverSocket = new ServerSocket(server.getPort());
+                addIpLabel();
+                addPortLabel();
                 new Thread(() -> {
                     try {
                         accept = serverSocket.accept();
@@ -206,27 +148,20 @@ public class ChooseFrame extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-        button.setLocation(WIDTH /2-150, HEIGHT /2-120);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,240,150);
+        ServerButton = button;
     }
     private void addClientButton() {
         JButton button = new JButton("链接主机");
         button.addActionListener((e) -> {
-//            String host = JOptionPane.showInputDialog(null,"请输入目标主机的IP：");
-//            String port = JOptionPane.showInputDialog(null,"请输入目标主机的端口：");
-            String host = null;
+            String host = JOptionPane.showInputDialog(null,"请输入目标主机的IP：");
+            String port = JOptionPane.showInputDialog(null,"请输入目标主机的端口：");
             try {
                 host = InetAddress.getLocalHost().getHostAddress();
             } catch (UnknownHostException ex) {
                 throw new RuntimeException(ex);
             }
-            String port = "8888";
-            if((port!=null&&!port.equals(""))&&(host!=null&&!host.equals(""))){
+            if(host != null && !host.equals("")){
                 Client client = new Client(host,Integer.parseInt(port));
                 Socket socket = client.game();
                 if(socket!=null){
@@ -238,27 +173,15 @@ public class ChooseFrame extends JFrame {
             }else JOptionPane.showMessageDialog(this,"链接失败");
             repaint();
         });
-        button.setLocation(WIDTH /2-150, HEIGHT /2);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,240,250);
+        ClientButton = button;
     }
     private void addObserverButton() {
         JButton button = new JButton("观战");
         button.addActionListener((e) -> {
-//            String host = JOptionPane.showInputDialog(null,"请输入目标主机的IP：");
-//            String port = JOptionPane.showInputDialog(null,"请输入目标主机的端口：");
-            String host = null;
-            try {
-                host = InetAddress.getLocalHost().getHostAddress();
-            } catch (UnknownHostException ex) {
-                throw new RuntimeException(ex);
-            }
+            String host = JOptionPane.showInputDialog(null,"请输入目标主机的IP：");
             String port = "8889";
-            if((port!=null&&!port.equals(""))&&(host!=null&&!host.equals(""))){
+            if(host != null && !host.equals("")){
                 Client client = new Client(host,Integer.parseInt(port));
                 Socket socket = client.game();
                 if(socket!=null){
@@ -270,13 +193,37 @@ public class ChooseFrame extends JFrame {
             }else JOptionPane.showMessageDialog(this,"棋局未开始！");
             repaint();
         });
-        button.setLocation(WIDTH /2-150, HEIGHT /2+120);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,240,350);
+        ObserverButton = button;
+    }
+    private void addLoginButton() {
+        JButton button = new JButton("登录");
+        button.addActionListener((e) -> {
+            new LoginFrame(this);
+        });
+        setButton(button,240,150);
+        LoginButton = button;
+    }
+    private void addRegisterButton() {
+        JButton button = new JButton("注册");
+        button.addActionListener((e) -> {
+            new RegisterFrame(this);
+        });
+        setButton(button,240,250);
+        RegisterButton = button;
+    }
+    private void addRankButton() {
+        JButton button = new JButton("排行榜");
+        button.addActionListener((e) -> {
+            Collections.sort(users);
+            StringBuilder rank = new StringBuilder("排名             名称                分数\n");
+            for (int i = 0; i < users.size(); i++){
+                rank.append(String.format("   %-18d %-15s" + " ".repeat(Math.max(0, 10 - users.get(i).getName().length())) + "%-10d \n", i + 1, users.get(i).getName(), users.get(i).getScore()));
+            }
+            JOptionPane.showMessageDialog(null, rank.toString(), "排行榜",JOptionPane.INFORMATION_MESSAGE);
+        });
+        setButton(button,240,350);
+        RankButton = button;
     }
     private void addSimpleButton() {
         JButton button = new JButton("简单");
@@ -284,13 +231,8 @@ public class ChooseFrame extends JFrame {
             start(3,null,Constant.EASY.getNum());
             setVisible(false);
         });
-        button.setLocation(WIDTH /2-150, HEIGHT /2-120);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,240,150);
+        SimpleButton = button;
     }
     private void addNormalButton() {
         JButton button = new JButton("普通");
@@ -298,13 +240,8 @@ public class ChooseFrame extends JFrame {
             start(3,null,Constant.NORMAL.getNum());
             setVisible(false);
         });
-        button.setLocation(WIDTH /2-150, HEIGHT /2);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,240,250);
+        NormalButton = button;
     }
     private void addDifficultButton() {
         JButton button = new JButton("困难");
@@ -312,27 +249,60 @@ public class ChooseFrame extends JFrame {
             start(3,null,Constant.DIFFICULT.getNum());
             setVisible(false);
         });
-        button.setLocation(WIDTH /2-150, HEIGHT /2+120);
-        button.setSize(300, 100);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,240,350);
+        DifficultButton = button;
+    }
+    private void addBackButton() {
+        JButton button = new JButton("返回");
+        button.addActionListener((e) -> {
+            back();
+        });
+        setButton(button,240,450);
+        BackButton = button;
+    }
+    private void addIpLabel() throws UnknownHostException {
+        JLabel statusLabel = new JLabel("IP:"+InetAddress.getLocalHost().getHostAddress());
+        statusLabel.setLocation(WIDTH /2-150, HEIGHT /2-150);
+        statusLabel.setSize(300, 80);
+        statusLabel.setFont(getPixel(Font.BOLD,30));
+        layeredPane.add(statusLabel, JLayeredPane.PALETTE_LAYER);
+    }
+    private void addPortLabel() {
+        JLabel statusLabel = new JLabel("端口号:" + server.getPort());
+        statusLabel.setLocation(WIDTH /2-100, HEIGHT /2-90);
+        statusLabel.setSize(300, 80);
+        statusLabel.setFont(getPixel(Font.BOLD,30));
+        layeredPane.add(statusLabel, JLayeredPane.PALETTE_LAYER);
     }
     private void addLabel() {
         JLabel statusLabel = new JLabel("连接中...");
-        statusLabel.setLocation(WIDTH /2-150, HEIGHT /2-50);
+        statusLabel.setLocation(WIDTH /2-150, HEIGHT /2);
         statusLabel.setSize(300, 80);
         statusLabel.setFont(getPixel(Font.BOLD,60));
         layeredPane.add(statusLabel, JLayeredPane.PALETTE_LAYER);
     }
-    private void addTitleLabel() {
-        JLabel statusLabel = new JLabel("斗兽棋");
-        statusLabel.setLocation(WIDTH /2-100, HEIGHT /2-250);
-        statusLabel.setSize(300, 80);
-        statusLabel.setFont(getPixel(Font.BOLD,60));
-        layeredPane.add(statusLabel, JLayeredPane.PALETTE_LAYER);
+    private void setButton(JButton button,int x,int y) {
+        button.setSize(230, 80);
+        button.setVerticalTextPosition(SwingConstants.CENTER);
+        button.setLocation(x,y);
+        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
+        button.setIcon(new ImageIcon("resource\\Picture\\button green big.png"));
+        button.setFont(getPixel(Font.BOLD,30));
+    }
+    private void addButton(){
+        addNetButton();
+        addSinglePlayerButton();
+        addMultiPlayerButton();
+        addBackButton();
+        addClientButton();
+        addServerButton();
+        addObserverButton();
+        addLoginButton();
+        addRegisterButton();
+        addRankButton();
+        addSimpleButton();
+        addNormalButton();
+        addDifficultButton();
     }
     private void setUsers(){
         try {
@@ -341,10 +311,54 @@ public class ChooseFrame extends JFrame {
             if(!file.exists()){
                 file.createNewFile();
             }
-            String temp;
             ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)));
             users = (ArrayList<User>) ois.readObject();
-        } catch (Exception e){}
+        } catch (Exception ignored){}
+    }
+    private void back(){
+        if(stage==0){
+            System.out.println("???");
+            setVisible(false);
+            startFrame.setBack(true);
+            startFrame.setVisible(true);
+        }else if (stage==1){
+            layeredPane.remove(ServerButton);
+            layeredPane.remove(ClientButton);
+            layeredPane.remove(ObserverButton);
+            layeredPane.add(NetButton, JLayeredPane.PALETTE_LAYER);
+            layeredPane.add(MultiPlayerButton, JLayeredPane.PALETTE_LAYER);
+            layeredPane.add(SinglePlayerButton, JLayeredPane.PALETTE_LAYER);
+            stage = 0;
+        } else if (stage==2){
+            layeredPane.remove(LoginButton);
+            layeredPane.remove(RegisterButton);
+            layeredPane.remove(RankButton);
+            layeredPane.add(NetButton, JLayeredPane.PALETTE_LAYER);
+            layeredPane.add(MultiPlayerButton, JLayeredPane.PALETTE_LAYER);
+            layeredPane.add(SinglePlayerButton, JLayeredPane.PALETTE_LAYER);
+            stage = 0;
+        }else  {
+            layeredPane.remove(SimpleButton);
+            layeredPane.remove(NormalButton);
+            layeredPane.remove(DifficultButton);
+            layeredPane.add(LoginButton, JLayeredPane.PALETTE_LAYER);
+            layeredPane.add(RegisterButton, JLayeredPane.PALETTE_LAYER);
+            layeredPane.add(RankButton, JLayeredPane.PALETTE_LAYER);
+            stage = 1;
+        }
+        revalidate();
+        repaint();
+    }
+    public void login(){
+        stage = 3;
+        layeredPane.remove(LoginButton);
+        layeredPane.remove(RegisterButton);
+        layeredPane.remove(RankButton);
+        layeredPane.add(SimpleButton, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(NormalButton, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(DifficultButton, JLayeredPane.PALETTE_LAYER);
+        invalidate();
+        repaint();
     }
     public void start(int mode,Socket socket,int difficult){
         if(isPlay){

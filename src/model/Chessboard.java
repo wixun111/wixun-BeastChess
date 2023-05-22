@@ -2,6 +2,7 @@ package model;
 
 import view.ChessboardComponent;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 
@@ -10,6 +11,7 @@ import java.io.Serializable;
  * The Chessboard has 9*7 cells, and each cell has a position for chess
  */
 public class Chessboard implements Serializable {
+    @Serial
     private static final long serialVersionUID = 245L;
     private final Cell[][] grid;
     private int redCount,blueCount;
@@ -18,11 +20,6 @@ public class Chessboard implements Serializable {
         this.grid = new Cell[Constant.CHESSBOARD_ROW_SIZE.getNum()][Constant.CHESSBOARD_COL_SIZE.getNum()];//19X19
         initGrid();
         if(!isLoad) initPieces();
-    }
-    public Chessboard(Cell[][] grid,int redCount,int blueCount) {
-        this.grid = grid;
-        this.redCount = redCount;
-        this.blueCount = blueCount;
     }
 
     private void initGrid() {
@@ -58,9 +55,6 @@ public class Chessboard implements Serializable {
                 grid[i][j].removePiece();
             }
         }
-    }
-    public void setGrid(int row, int col, int rank, String color, String name){
-        grid[row][col].setPiece(new ChessPiece(color.equals("BLUE")?PlayerColor.BLUE:PlayerColor.RED,name,rank));
     }
 
     public ChessPiece getChessPieceAt(ChessboardPoint point) {
@@ -105,7 +99,7 @@ public class Chessboard implements Serializable {
         setChessPiece(dest, removeChessPiece(src));
     }
 
-    public void captureChessPiece(ChessboardComponent view,ChessboardPoint src, ChessboardPoint dest) {
+    public void captureChessPiece(ChessboardPoint src, ChessboardPoint dest) {
         setChessPiece(dest, removeChessPiece(src));
     }
 
@@ -133,7 +127,7 @@ public class Chessboard implements Serializable {
         ChessPiece target = getChessPieceAt(dest);
         if(target==null) return false;
         if(!chess.canCapture(target)) return false;
-        if(!(calculateDistance(src, dest)==1)&&chess!=null&&(chess.getName().equals("Tiger")||chess.getName().equals("Lion"))){
+        if(!(calculateDistance(src, dest) == 1) && (chess.getName().equals("Tiger") || chess.getName().equals("Lion"))){
             return canJump(view,src,dest);
         }
         if(view.riverCell.contains(src)&&chess.getName().equals("Rat")&&target.getName().equals("Elephant")){

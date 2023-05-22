@@ -46,14 +46,13 @@ public class GameController implements GameListener{
     private ChessboardPoint selectedPoint;
     private Socket socket;
     private Socket hostSocket;
-    private ChessGameFrame frame;
     private Stack<Object[]> stack = new Stack<>();
     private ServerSocket serverSocket;
     private ServerSocket ObserverSocket;
     protected ArrayList<User> users = new ArrayList<>();
     private User user;
-    private Font pixel;
-    private Timer timer;
+    private final Font pixel;
+    private final Timer timer;
     private JLabel playerLabel;
     private Object[] output = new Object[3];
     public GameController(ChessboardComponent view, Chessboard model, int mode, Socket socket,int difficulty) throws IOException {
@@ -497,7 +496,7 @@ public class GameController implements GameListener{
                 System.out.println(target.getOwner().equals(PlayerColor.BLUE));
                 model.addCount(target.getOwner().equals(PlayerColor.BLUE));
                 model.setChessPiece(des,target);
-                view.setChessComponentAtGrid(des,new ChessComponent(target,target.getOwner(), view.getChessSize()));
+                view.setChessComponentAtGrid(des,new ChessComponent(target, view.getChessSize()));
             }
             swapColor();
             view.revalidate();
@@ -516,7 +515,7 @@ public class GameController implements GameListener{
         ChessPiece chess = model.getChessPieceAt(src);
         if(target!=null&&model.isValidCapture(view,src,des)){
             model.minusCount(target.getOwner()==PlayerColor.BLUE);
-            model.captureChessPiece(view,src,des);
+            model.captureChessPiece(src,des);
             view.removeChessComponentAtGrid(des);
         }else model.moveChessPiece(src, des);
         onTrap(src,des,chess);
@@ -580,18 +579,18 @@ public class GameController implements GameListener{
             int n = stack.size();
             System.out.println(n);
             isReplay = true;
-            for (int i = 0; i < n; i++) {
+            for (Object[] objects : stack) {
                 try {
                     sleep(500);
-                    Object[] output = stack.get(i);
-                    ChessboardPoint src = (ChessboardPoint)output[0];
-                    ChessboardPoint des = (ChessboardPoint)output[1];
-                    ChessPiece target = (ChessPiece)output[2];
-                    if(target!=null){
-                        model.captureChessPiece(view,src,des);
+                    Object[] output = objects;
+                    ChessboardPoint src = (ChessboardPoint) output[0];
+                    ChessboardPoint des = (ChessboardPoint) output[1];
+                    ChessPiece target = (ChessPiece) output[2];
+                    if (target != null) {
+                        model.captureChessPiece(src, des);
                         view.removeChessComponentAtGrid(des);
-                    }else model.moveChessPiece(src, des);
-                    view.setChessComponentAtGrid(des,view.removeChessComponentAtGrid(src));
+                    } else model.moveChessPiece(src, des);
+                    view.setChessComponentAtGrid(des, view.removeChessComponentAtGrid(src));
                     view.repaint();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);

@@ -3,9 +3,9 @@ package model;
 import java.io.Serializable;
 
 public class User implements Comparable<User>, Serializable {
-    private String name;
-    private String account;
-    private String password;
+    private final String name;
+    private final String account;
+    private final String password;
     private int score;
 
     public User(String name, String account, String password, int score) {

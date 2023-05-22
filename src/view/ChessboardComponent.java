@@ -52,7 +52,7 @@ public class ChessboardComponent extends JComponent implements Serializable {
             for (int j = 0; j < CHESSBOARD_COL_SIZE.getNum(); j++) {
                 if (grid[i][j].getPiece() != null) {
                     ChessPiece chessPiece = grid[i][j].getPiece();
-                    gridComponents[i][j].add(new ChessComponent(chessPiece,chessPiece.getOwner(), CHESS_SIZE));
+                    gridComponents[i][j].add(new ChessComponent(chessPiece, CHESS_SIZE));
                 }
             }
         }
@@ -67,10 +67,6 @@ public class ChessboardComponent extends JComponent implements Serializable {
     }
     public int getChessSize(){
         return CHESS_SIZE;
-    }
-
-    public Set<ChessboardPoint> getRiverCell() {
-        return riverCell;
     }
 
     public Set<ChessboardPoint> getDenCell() {
@@ -175,16 +171,12 @@ public class ChessboardComponent extends JComponent implements Serializable {
             if(gameController.isReplay()||gameController.getMode()==4) return;
             JComponent clickedComponent = (JComponent) getComponentAt(e.getX(), e.getY());
             if (clickedComponent.getComponentCount() == 0) {
-//                System.out.print("None chess here and ");
                 try {
                     gameController.onPlayerClickCell(getChessboardPoint(e.getPoint()), (CellComponent) clickedComponent);
                 } catch (IOException | ClassNotFoundException ex) {
                     throw new RuntimeException(ex);
                 }
             } else {
-//                System.out.print("One chess here and ");
-                ChessPiece chessPiece = gameController.getModel().getChessPieceAt(getChessboardPoint(e.getPoint()));
-//                System.out.print("Piece:"+chessPiece+"  Rank:" + chessPiece.getRank()+"\n");
                 gameController.onPlayerClickChessPiece(getChessboardPoint(e.getPoint()), (ChessComponent) clickedComponent.getComponents()[0]);
             }
         }

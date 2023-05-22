@@ -6,28 +6,21 @@ import model.PlayerColor;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
 /**
  * This is the equivalent of the ChessPiece class,
  * but this class only cares how to draw Chess on ChessboardComponent
  */
 public class ChessComponent extends JComponent {
-    private final PlayerColor owner;
     private final ChessPiece piece;
     private boolean selected;
 
-    public ChessComponent(ChessPiece piece, PlayerColor owner, int size) {
+    public ChessComponent(ChessPiece piece, int size) {
         this.piece = piece;
-        this.owner = owner;
         this.selected = false;
         setSize(size/2, size/2);
         setLocation(0,0);
         setVisible(true);
-    }
-
-    private boolean isSelected() {
-        return selected;
     }
 
     public void setSelected(boolean selected) {

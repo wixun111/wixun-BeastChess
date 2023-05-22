@@ -3,15 +3,15 @@ package model;
 
 import java.io.Serializable;
 
-public class ChessPiece implements Serializable,Cloneable {
+public class ChessPiece implements Serializable {
     // the owner of the chess
     private final PlayerColor owner;
 
     // Elephant? Cat? Dog? ...
     private final String name;
     private int rank;
-    private int saveRank;
-    private int value;
+    private final int saveRank;
+    private final int value;
 
     public ChessPiece(PlayerColor owner, String name, int rank) {
         this.owner = owner;
@@ -43,9 +43,6 @@ public class ChessPiece implements Serializable,Cloneable {
 
     public String getName() {
         return name;
-    }
-    public int getRank(){
-        return rank;
     }
 
     public PlayerColor getOwner() {

@@ -83,13 +83,13 @@ public class AIBoard {
     }
     public boolean isValidMove(int[] src,int[] des) {
         if(getChessPieceAt(src)[0]!=0&&(getChessPieceAt(src)[0]==6||getChessPieceAt(src)[0]==7)&&calculateDistance(src,des)!=1){
-            return canJump(src,des);
+            return !canJump(src, des);
         }
-        if(getTerrainAt(des)[0]==2&&getTerrainAt(des)[1]==getChessPieceAt(src)[3]) return false;
+        if(getTerrainAt(des)[0]==2&&getTerrainAt(des)[1]==getChessPieceAt(src)[3]) return true;
         if(getChessPieceAt(src)[0]==0||getChessPieceAt(des)[0]!=0||(getTerrainAt(des)[0]==3&&getChessPieceAt(src)[0]!=1)) {
-            return false;
+            return true;
         }
-        return calculateDistance(src, des) == 1;
+        return calculateDistance(src, des) != 1;
     }
     public int[] getChessPieceAt(int[] point) {
         return grid[point[0]][point[1]];
@@ -221,8 +221,11 @@ public class AIBoard {
                 int value = chess[2];
                 int name = chess[0];
                 boolean own = chess[3] == Player;
-                Score += own?value:-value;
-                Score += own?value/100*i:value/100*(8-i);
+                if(Player==-1){
+                    Score += own?value/100*i:-value/100*(8-i);
+                }else {
+                    Score += own?value/100*(8-i):-value/100*i;
+                }
                 if(name==6||name==7||name==1){
                 if(i<6&i>1) Score+=own?150:-150;
                 }

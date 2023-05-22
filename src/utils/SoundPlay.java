@@ -8,12 +8,11 @@ import java.io.IOException;
 import static javax.sound.sampled.AudioFormat.Encoding.PCM_SIGNED;
 import static javax.sound.sampled.AudioSystem.getAudioInputStream;
 public class SoundPlay {
-    private volatile boolean isCanceled = false;
+    private final boolean isCanceled = false;
 
     private Thread currentThread = null;
-    private boolean isSound;
 
-    public static SoundPlay playBgm(String path) {
+    public static void playBgm(String path) {
         SoundPlay player = new SoundPlay();
         player.currentThread = new Thread(() -> {
             while (!player.isCanceled) {
@@ -21,21 +20,11 @@ public class SoundPlay {
             }
         });
         player.currentThread.start();
-        return player;
     }
-    public static SoundPlay playSound(String path) {
+    public static void playSound(String path) {
         SoundPlay player = new SoundPlay();
         player.currentThread = new Thread(() -> player.play(path,0));
         player.currentThread.start();
-        return player;
-    }
-
-    public void stop() {
-        this.isCanceled = true;
-    }
-
-    public Thread getCurrentThread() {
-        return currentThread;
     }
 
     public void play(String filePath,int type) {

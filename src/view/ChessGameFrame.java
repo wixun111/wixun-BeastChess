@@ -19,13 +19,13 @@ public class ChessGameFrame extends JFrame {
 
     private ChessboardComponent chessboardComponent;
     private GameController game;
-    private Font pixel;
-    private JLayeredPane layeredPane;
+    private final Font pixel;
+    private final JLayeredPane layeredPane;
     private JLabel timeLabel;
     private JLabel playerLabel;
-    private JLabel bgDesert;
-    private JLabel bgGrassland;
-    private JLabel bgIceField;
+    private final JLabel bgDesert;
+    private final JLabel bgGrassland;
+    private final JLabel bgIceField;
     private ChooseFrame chooseFrame;
     int theme = 1;
 
@@ -128,7 +128,7 @@ public class ChessGameFrame extends JFrame {
         String modeName ="";
         Color color = null;
         if(mode==0){
-            modeName = "单机模式";
+            modeName = "双人模式";
         }else if(mode==1){
             modeName = "联网模式";
             color = Color.BLUE;
@@ -136,6 +136,8 @@ public class ChessGameFrame extends JFrame {
             modeName = "联网模式";
             color = Color.RED;
         }else if(mode==3){
+            modeName = "单机模式";
+        }else if(mode==4){
             modeName = "观战模式";
         }
         JLabel statusLabel = new JLabel(modeName);
@@ -174,13 +176,7 @@ public class ChessGameFrame extends JFrame {
                 }
             game.restart(false);
         });
-        button.setLocation(HEIGHT+100, HEIGHT / 10-40);
-        button.setSize(200, 60);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,HEIGHT+100, HEIGHT / 10-40);
     }
     private void addSaveButton() {
         JButton button = new JButton("保存");
@@ -191,26 +187,14 @@ public class ChessGameFrame extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-        button.setLocation(HEIGHT+100, HEIGHT / 10 + 40);
-        button.setSize(200, 60);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,HEIGHT+100, HEIGHT / 10 + 40);
     }
     private void addLoadButton() {
         JButton button = new JButton("读取");
         button.addActionListener((e) -> {
             game.restart(true);
         });
-        button.setLocation(HEIGHT+100, HEIGHT / 10 + 120);
-        button.setSize(200, 60);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,HEIGHT+100, HEIGHT / 10 + 120);
     }
     private void addUndoButton() {
         JButton button = new JButton("悔棋");
@@ -218,40 +202,23 @@ public class ChessGameFrame extends JFrame {
             if(game.getMode()==3) game.undo();
             game.undo();
         });
-        button.setLocation(HEIGHT+100, HEIGHT / 10 + 200);
-        button.setSize(200, 60);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,HEIGHT+100, HEIGHT / 10 + 200);
     }
     private void addCapitulateButton() {
         JButton button = new JButton("认输");
         button.addActionListener((e) -> {
             game.capitulate();
         });
-        button.setLocation(HEIGHT+100, HEIGHT / 10 + 280);
-        button.setSize(200, 60);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,HEIGHT+100, HEIGHT / 10 + 280);
     }
     private void addReplayButton() {
         JButton button = new JButton("重演");
         button.addActionListener((e) ->{
             game.replay();
         });
-        button.setLocation(HEIGHT+100, HEIGHT / 10 + 360);
-        button.setSize(200, 60);
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
-        button.setIcon(new ImageIcon("resource\\Picture\\button green.png"));
-        button.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+        setButton(button,HEIGHT+100, HEIGHT / 10 + 360);
     }
+
     private void addChangeThemeButton() {
         JButton button = new JButton("草地");
         button.setLocation(HEIGHT+100, HEIGHT / 10 + 440);
@@ -287,6 +254,15 @@ public class ChessGameFrame extends JFrame {
             dispose();
             chooseFrame.setVisible(true);
         });
+    }
+    private void setButton(JButton button,int x,int y) {
+        button.setSize(200, 60);
+        button.setLocation(x, y);
+        button.setVerticalTextPosition(SwingConstants.CENTER);
+        button.setHorizontalTextPosition(SwingConstants.HORIZONTAL);
+        button.setIcon(new ImageIcon("resource\\Picture\\button green.png"));
+        button.setFont(getPixel(Font.BOLD,30));
+        layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
     }
     private void changeTheme(){
         String picture = "";
