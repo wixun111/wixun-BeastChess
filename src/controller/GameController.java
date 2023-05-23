@@ -29,7 +29,7 @@ public class GameController implements GameListener{
     private int askUndo = 0;
     private int askType = 0;
     private final int difficult;
-    private final int mode;
+    private int mode;
     private boolean over;
     private boolean isReplay;
     private boolean isObserver;
@@ -118,6 +118,10 @@ public class GameController implements GameListener{
 
     public void setAskType(int askType) {
         this.askType = askType;
+    }
+
+    public void setMode(int mode) {
+        this.mode = mode;
     }
 
     public void setUser(User user) {
@@ -237,7 +241,8 @@ public class GameController implements GameListener{
                 }
                 System.out.println("接收对象成功！");
             } catch (IOException e) {
-                JOptionPane.showMessageDialog(view.getParent(),"链接中断？？？");
+                timer.setPause(true);
+                JOptionPane.showMessageDialog(view.getParent(),"链接中断!");
                 e.printStackTrace();
                 netBreak = true;over = true;
                 assume();
@@ -263,6 +268,7 @@ public class GameController implements GameListener{
                         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                         oos.writeObject(new Object[]{currentPlayer,false,model,stack});
                     }
+                    timer.setPause(false);
                     JOptionPane.showMessageDialog(view.getParent(),"重新链接成功！！！");
                     netBreak = false;over = false;
                 } catch (IOException exc) {

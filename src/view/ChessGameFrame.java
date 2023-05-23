@@ -16,7 +16,7 @@ public class ChessGameFrame extends JFrame {
 
     private final int ONE_CHESS_SIZE;
     public JLabel background;
-
+    public JLabel modeLabel;
     private ChessboardComponent chessboardComponent;
     private GameController game;
     private final Font pixel;
@@ -140,14 +140,14 @@ public class ChessGameFrame extends JFrame {
         }else if(mode==4){
             modeName = "观战模式";
         }
-        JLabel statusLabel = new JLabel(modeName);
-        if (mode!= 0)statusLabel.setLocation(25, HEIGHT / 10+40);
-        else statusLabel.setLocation(25, HEIGHT / 10+40);
-        statusLabel.setSize(400, 140);
+        modeLabel = new JLabel(modeName);
+        if (mode!= 0)modeLabel.setLocation(25, HEIGHT / 10+40);
+        else modeLabel.setLocation(25, HEIGHT / 10+40);
+        modeLabel.setSize(400, 140);
         Font font = getPixel(Font.BOLD,50);
-        if(color!=null) statusLabel.setForeground(color);
-        statusLabel.setFont(font);
-        layeredPane.add(statusLabel, JLayeredPane.PALETTE_LAYER);
+        if(color!=null) modeLabel.setForeground(color);
+        modeLabel.setFont(font);
+        layeredPane.add(modeLabel, JLayeredPane.PALETTE_LAYER);
     }
     private void addPlayerLabel(){
         playerLabel = new JLabel("走子方");
@@ -263,6 +263,25 @@ public class ChessGameFrame extends JFrame {
         button.setIcon(new ImageIcon("resource\\Picture\\button green.png"));
         button.setFont(getPixel(Font.BOLD,30));
         layeredPane.add(button, JLayeredPane.PALETTE_LAYER);
+    }
+    public void setModeLabel(int mode){
+        String modeName ="";
+        Color color = null;
+        if(mode==0){
+            modeName = "双人模式";
+        }else if(mode==1){
+            modeName = "联网模式";
+            color = Color.BLUE;
+        }else if(mode==2){
+            modeName = "联网模式";
+            color = Color.RED;
+        }else if(mode==3){
+            modeName = "单机模式";
+        }else if(mode==4){
+            modeName = "观战模式";
+        }
+        modeLabel.setText(modeName);
+        modeLabel.setForeground(color);
     }
     private void changeTheme(){
         String picture = "";

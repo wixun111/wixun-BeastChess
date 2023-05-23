@@ -15,7 +15,10 @@ public class Timer extends Thread{
             PlayerColor player = game.getCurrentPlayer();
             while(true) {
                 try {
-                    sleep(10);
+                    while (pause){
+                        sleep(50);
+                    }
+                    sleep(1000);
                     if(time==0){
                         if(game.getMode()==3&&game.getCurrentPlayer()==PlayerColor.RED) break;
                         if((game.getMode()==1&&game.getCurrentPlayer()==PlayerColor.RED)||(game.getMode()==2&&game.getCurrentPlayer()==PlayerColor.BLUE)) {

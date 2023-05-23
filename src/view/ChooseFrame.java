@@ -133,7 +133,6 @@ public class ChooseFrame extends JFrame {
             try {
                 serverSocket = new ServerSocket(server.getPort());
                 addIpLabel();
-                addPortLabel();
                 new Thread(() -> {
                     try {
                         accept = serverSocket.accept();
@@ -155,14 +154,9 @@ public class ChooseFrame extends JFrame {
         JButton button = new JButton("链接主机");
         button.addActionListener((e) -> {
             String host = JOptionPane.showInputDialog(null,"请输入目标主机的IP：");
-            String port = JOptionPane.showInputDialog(null,"请输入目标主机的端口：");
-            try {
-                host = InetAddress.getLocalHost().getHostAddress();
-            } catch (UnknownHostException ex) {
-                throw new RuntimeException(ex);
-            }
+            int port = 8888;
             if(host != null && !host.equals("")){
-                Client client = new Client(host,Integer.parseInt(port));
+                Client client = new Client(host,port);
                 Socket socket = client.game();
                 if(socket!=null){
                     System.out.println("链接成功");
@@ -267,16 +261,9 @@ public class ChooseFrame extends JFrame {
         statusLabel.setFont(getPixel(Font.BOLD,30));
         layeredPane.add(statusLabel, JLayeredPane.PALETTE_LAYER);
     }
-    private void addPortLabel() {
-        JLabel statusLabel = new JLabel("端口号:" + server.getPort());
-        statusLabel.setLocation(WIDTH /2-100, HEIGHT /2-90);
-        statusLabel.setSize(300, 80);
-        statusLabel.setFont(getPixel(Font.BOLD,30));
-        layeredPane.add(statusLabel, JLayeredPane.PALETTE_LAYER);
-    }
     private void addLabel() {
         JLabel statusLabel = new JLabel("连接中...");
-        statusLabel.setLocation(WIDTH /2-150, HEIGHT /2);
+        statusLabel.setLocation(WIDTH /2-150, HEIGHT /2-50);
         statusLabel.setSize(300, 80);
         statusLabel.setFont(getPixel(Font.BOLD,60));
         layeredPane.add(statusLabel, JLayeredPane.PALETTE_LAYER);
@@ -364,6 +351,8 @@ public class ChooseFrame extends JFrame {
         if(isPlay){
             mainFrame.setVisible(true);
             gameController.restart(false);
+            gameController.setMode(mode);
+            mainFrame.setModeLabel(mode);
             return;
         }
         isPlay = true;
