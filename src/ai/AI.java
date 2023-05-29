@@ -93,7 +93,6 @@ public class AI {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        if(game.getCurrentPlayer()!=PlayerColor.RED&&game.getMode()==3) return;
         ChessboardPoint src = new ChessboardPoint(rowAtomic.get(), colAtomic.get());
         ChessboardPoint des = new ChessboardPoint(xAtomic.get(), yAtomic.get());
         game.concludeMove(src, des, model.getChessPieceAt(des));

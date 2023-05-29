@@ -304,7 +304,6 @@ public class ChooseFrame extends JFrame {
     }
     private void back(){
         if(stage==0){
-            System.out.println("???");
             setVisible(false);
             startFrame.setBack(true);
             startFrame.setVisible(true);
@@ -331,7 +330,7 @@ public class ChooseFrame extends JFrame {
             layeredPane.add(LoginButton, JLayeredPane.PALETTE_LAYER);
             layeredPane.add(RegisterButton, JLayeredPane.PALETTE_LAYER);
             layeredPane.add(RankButton, JLayeredPane.PALETTE_LAYER);
-            stage = 1;
+            stage = 2;
         }
         revalidate();
         repaint();
@@ -347,18 +346,20 @@ public class ChooseFrame extends JFrame {
         invalidate();
         repaint();
     }
-    public void start(int mode,Socket socket,int difficult){
+    public void start(int mode,Socket socket,int difficulty){
         if(isPlay){
             mainFrame.setVisible(true);
             gameController.restart(false);
             gameController.setMode(mode);
             mainFrame.setModeLabel(mode);
+            gameController.getComputer().setDifficulty(difficulty);
+            gameController.setDifficulty(difficulty);
             return;
         }
         isPlay = true;
         mainFrame = new ChessGameFrame(1100, 750, mode);
         try {
-            gameController = new GameController(mainFrame.getChessboardComponent(), new Chessboard(false),mode,socket,difficult);
+            gameController = new GameController(mainFrame.getChessboardComponent(), new Chessboard(false),mode,socket,difficulty);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -368,6 +369,7 @@ public class ChooseFrame extends JFrame {
         mainFrame.setGame(gameController);
         mainFrame.setChooseFrame(this);
         gameController.setPlayerLabel(mainFrame.getPlayerLabel());
+        gameController.setTurnLabel(mainFrame.getTurnLabel());
         gameController.getTimer().setTimeLabel(mainFrame.getTimeLabel());
         mainFrame.setVisible(true);
     }

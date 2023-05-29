@@ -153,7 +153,6 @@ public class ChessboardComponent extends JComponent implements Serializable {
             case 3 -> "resource\\Picture\\Map ice field.png";
             default -> "";
         };
-
     }
 
     @Override

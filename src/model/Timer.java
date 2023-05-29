@@ -20,12 +20,12 @@ public class Timer extends Thread{
                     }
                     sleep(1000);
                     if(time==0){
-                        if(game.getMode()==3&&game.getCurrentPlayer()==PlayerColor.RED) break;
                         if((game.getMode()==1&&game.getCurrentPlayer()==PlayerColor.RED)||(game.getMode()==2&&game.getCurrentPlayer()==PlayerColor.BLUE)) {
                             pause = true;
                             break;
                         }
                         game.getComputer().AiTurn(game.getModel(),game);
+                        if(game.getMode()==3) game.getComputer().AiTurn(game.getModel(),game);
                         break;
                     }else time--;
                     if (game.getCurrentPlayer() != player){

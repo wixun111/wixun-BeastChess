@@ -23,6 +23,7 @@ public class ChessGameFrame extends JFrame {
     private final JLayeredPane layeredPane;
     private JLabel timeLabel;
     private JLabel playerLabel;
+    private JLabel turnLabel;
     private final JLabel bgDesert;
     private final JLabel bgGrassland;
     private final JLabel bgIceField;
@@ -48,6 +49,7 @@ public class ChessGameFrame extends JFrame {
         addChessboard();
         addLabel();
         addModeLabel(mode);
+        addTurnLabel();
         if(mode!=4){
             addRestartButton();
             addSaveButton();
@@ -104,6 +106,10 @@ public class ChessGameFrame extends JFrame {
 
     public JLabel getTimeLabel() {
         return timeLabel;
+    }
+
+    public JLabel getTurnLabel() {
+        return turnLabel;
     }
 
     /**
@@ -163,6 +169,13 @@ public class ChessGameFrame extends JFrame {
         timeLabel.setSize(200, 60);
         timeLabel.setFont(getPixel(Font.BOLD,50));
         layeredPane.add(timeLabel, JLayeredPane.PALETTE_LAYER);
+    }
+    private void addTurnLabel(){
+        turnLabel = new JLabel("回合:1");
+        turnLabel.setLocation(25, HEIGHT / 10+140);
+        turnLabel.setSize(200, 60);
+        turnLabel.setFont(getPixel(Font.BOLD,50));
+        layeredPane.add(turnLabel, JLayeredPane.PALETTE_LAYER);
     }
     private void addRestartButton() {
         JButton button = new JButton("重新开始");

@@ -28,7 +28,7 @@ import static java.lang.Thread.sleep;
 public class GameController implements GameListener{
     private int askUndo = 0;
     private int askType = 0;
-    private final int difficult;
+    private int difficulty;
     private int mode;
     private boolean over;
     private boolean isReplay;
@@ -44,6 +44,7 @@ public class GameController implements GameListener{
     private PlayerColor currentPlayer;
     private final PlayerColor Player;
     private ChessboardPoint selectedPoint;
+    private ChessComponent movedChess;
     private Socket socket;
     private Socket hostSocket;
     private Stack<Object[]> stack = new Stack<>();
@@ -54,6 +55,7 @@ public class GameController implements GameListener{
     private final Font pixel;
     private final Timer timer;
     private JLabel playerLabel;
+    private JLabel turnLabel;
     private Object[] output = new Object[3];
     public GameController(ChessboardComponent view, Chessboard model, int mode, Socket socket,int difficulty) throws IOException {
         this.view = view;
@@ -65,7 +67,7 @@ public class GameController implements GameListener{
         this.socket = mode==0?null:socket;
         if(socket!=null) socket.setReuseAddress(true);
         this.computer = new AI(difficulty);
-        this.difficult = difficulty;
+        this.difficulty = difficulty;
         this.timer = new Timer(this);
         try {
             pixel = Font.createFont(Font.TRUETYPE_FONT,new File("resource\\Character\\pixel4.ttf"));
@@ -132,6 +134,10 @@ public class GameController implements GameListener{
         this.playerLabel = playerLabel;
     }
 
+    public void setTurnLabel(JLabel turnLabel) {
+        this.turnLabel = turnLabel;
+    }
+
     public Timer getTimer() {
         return timer;
     }
@@ -144,6 +150,9 @@ public class GameController implements GameListener{
         this.socket = socket;
     }
 
+    public void setDifficulty(int difficulty) {
+        this.difficulty = difficulty;
+    }
 
     public void setServerSocket(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
@@ -199,6 +208,9 @@ public class GameController implements GameListener{
                         canUndo = false;
                     }else if ((int)in == 2){//收到认输回复
                         over = true;
+                        timer.setPause(true);
+                        if(Player == PlayerColor.BLUE) setMessageDialog("蓝方获胜!","获胜信息",Font.BOLD,15);
+                        else setMessageDialog("红方获胜!","获胜信息",Font.BOLD,15);
                     }else if ((int)in == 3){//收到重开请求
                         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                         if(JOptionPane.showConfirmDialog(view.getParent(),"是否开始新的一局？","重开请求", JOptionPane.YES_NO_OPTION)==0){
@@ -318,6 +330,7 @@ public class GameController implements GameListener{
                     if(netBreak) continue;
                     ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                     if (askType==1){
+                        askType=0;
                         oos.writeObject(3);
                     }else if(askType==2){
                         askType=0;
@@ -345,20 +358,23 @@ public class GameController implements GameListener{
 
     public void swapColor() {//变化当前回合颜色
         currentPlayer = currentPlayer == PlayerColor.BLUE ? PlayerColor.RED : PlayerColor.BLUE;
+        turnLabel.setText("回合:" + (stack.size()/2+1));
         playerLabel.setForeground(currentPlayer.getColor());
     }
 
     public void win(ChessboardPoint point, ChessPiece chess) {
         System.out.printf("(blue:%d red:%d)\n",model.getBlueCount(),model.getRedCount());
         if((view.denCell.contains(point)&&view.getGridComponentAt(point).getPlayerColor()!=chess.getOwner())|| model.getBlueCount() ==0||model.getRedCount()==0){
+            over = true;
+            timer.setPause(true);
             if(currentPlayer == PlayerColor.BLUE||model.getRedCount()==0) {
                 if(mode==3){
                     int score;
-                    if (difficult == Constant.EASY.getNum()) {
+                    if (difficulty == Constant.EASY.getNum()) {
                         score = 1;
-                    } else if (difficult == Constant.NORMAL.getNum()) {
+                    } else if (difficulty == Constant.NORMAL.getNum()) {
                         score = 3;
-                    } else if (difficult == Constant.DIFFICULT.getNum()) {
+                    } else if (difficulty == Constant.DIFFICULT.getNum()) {
                         score = 10;
                     } else {
                         score = 0;
@@ -376,7 +392,6 @@ public class GameController implements GameListener{
                 setMessageDialog("蓝方获胜!","获胜信息",Font.BOLD,15);
             }
             else setMessageDialog("红方获胜!","获胜信息",Font.BOLD,15);
-            over = true;
         }
     }
     public void setMessageDialog(String text,String title,int style,int size){
@@ -447,11 +462,21 @@ public class GameController implements GameListener{
     }
     public void capitulate(){
         if(over||netBreak) return;
-        if(JOptionPane.showConfirmDialog(view.getParent(),"你确认认输么？","认输确认", JOptionPane.YES_NO_OPTION)==1) return;
-        over = true;
-        assume();
-        if(Player == PlayerColor.BLUE) setMessageDialog("蓝方获胜!","获胜信息",Font.BOLD,15);
-        else setMessageDialog("红方获胜!","获胜信息",Font.BOLD,15);
+        if(mode==2||mode==1){
+            if(JOptionPane.showConfirmDialog(view.getParent(),"你确认认输么？","认输确认", JOptionPane.YES_NO_OPTION)==1) return;
+            timer.setPause(true);
+            over = true;
+            assume();
+            if(Player == PlayerColor.BLUE) setMessageDialog("红方获胜!","获胜信息",Font.BOLD,15);
+            else setMessageDialog("蓝方获胜!","获胜信息",Font.BOLD,15);
+        }
+        else {
+            if(JOptionPane.showConfirmDialog(view.getParent(),"你确认认输么？","认输确认", JOptionPane.YES_NO_OPTION)==1) return;
+            over = true;
+            timer.setPause(true);
+            if(Player == PlayerColor.BLUE) setMessageDialog("红方获胜!","获胜信息",Font.BOLD,15);
+            else setMessageDialog("蓝方获胜!","获胜信息",Font.BOLD,15);
+        }
     }
 
     public void assume(){
@@ -509,6 +534,7 @@ public class GameController implements GameListener{
             view.repaint();
             askUndo=0;
             over = false;
+            timer.setPause(false);
 //            System.out.println(chess+" undo from "+des+" to "+src);
         }
         if((mode==1||mode==2)&&Player!=currentPlayer&&!canUndo&&askUndo==0) {
@@ -519,6 +545,7 @@ public class GameController implements GameListener{
     public void concludeMove(ChessboardPoint src,ChessboardPoint des,ChessPiece target){
         push(src,des,target);
         ChessPiece chess = model.getChessPieceAt(src);
+
         if(target!=null&&model.isValidCapture(view,src,des)){
             model.minusCount(target.getOwner()==PlayerColor.BLUE);
             model.captureChessPiece(src,des);
@@ -530,13 +557,16 @@ public class GameController implements GameListener{
         win(des,chess);
         this.selectedPoint = null;
         swapColor();
-        if(model.getRedCount()+model.getBlueCount()<6) computer.setDifficulty(difficult + 4);
-        else if(model.getRedCount()+model.getBlueCount()<8) computer.setDifficulty(difficult + 2);
-        else if(model.getRedCount()+model.getBlueCount()<11) computer.setDifficulty(difficult + 1);
-        else computer.setDifficulty(difficult);
+        if(model.getRedCount()+model.getBlueCount()<6) computer.setDifficulty(difficulty + 4);
+        else if(model.getRedCount()+model.getBlueCount()<8) computer.setDifficulty(difficulty + 2);
+        else if(model.getRedCount()+model.getBlueCount()<11) computer.setDifficulty(difficulty + 1);
+        else computer.setDifficulty(difficulty);
         if((mode==1&&currentPlayer==PlayerColor.RED)||(mode==2&&currentPlayer==PlayerColor.BLUE)){
             assume();
         }
+        if(movedChess!=null) movedChess.setSelected(false);
+        movedChess = view.getChessComponentAt(des);
+        movedChess.setSelected(true);
         timer.setPause(false);
         timer.setTime(45);
         timer.getTimeLabel().setText(("时间:" + timer.getTime()));
@@ -588,10 +618,9 @@ public class GameController implements GameListener{
             for (Object[] objects : stack) {
                 try {
                     sleep(500);
-                    Object[] output = objects;
-                    ChessboardPoint src = (ChessboardPoint) output[0];
-                    ChessboardPoint des = (ChessboardPoint) output[1];
-                    ChessPiece target = (ChessPiece) output[2];
+                    ChessboardPoint src = (ChessboardPoint) objects[0];
+                    ChessboardPoint des = (ChessboardPoint) objects[1];
+                    ChessPiece target = (ChessPiece) objects[2];
                     if (target != null) {
                         model.captureChessPiece(src, des);
                         view.removeChessComponentAtGrid(des);
